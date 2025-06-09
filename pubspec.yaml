@@ -1,0 +1,56 @@
+name: renta_carros
+description: "A new Flutter project."
+ 
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+ 
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+ 
+dependencies:
+  flutter:
+    sdk: flutter
+ 
+  cupertino_icons: ^1.0.8
+  window_size: ^0.1.0
+  bitsdojo_window: ^0.1.6
+  path_provider: ^2.1.5
+  excel: ^4.0.6
+  file_selector: ^1.0.3
+  filesystem_picker: ^4.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^5.0.0
+
+ 
+flutter:
+
+ 
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/imagenes/xd.jpg
+    - assets/imagenes/
+  #   - images/a_dot_ham.jpeg
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand.ttf
+    # - family: Corbel Bold
+      # fonts:
+      #   - asset: assets/fonts/Corbel Bold.ttf
+  #
+  # For details regarding fonts from package dependencies,
