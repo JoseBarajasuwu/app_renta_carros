@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:renta_carros/presentation/calendario/calendario_page.dart';
 import 'package:renta_carros/presentation/carros/carros_page.dart';
 import 'package:renta_carros/presentation/clientes/clientes_page.dart';
-import 'package:renta_carros/presentation/historial/historial.dart';
+import 'package:renta_carros/presentation/historial/historial_page.dart';
 
 class BottonNavigation extends StatefulWidget {
   const BottonNavigation({super.key});
@@ -50,7 +50,7 @@ class _BottonNavigationState extends State<BottonNavigation> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month_outlined),
-              label: 'Calendario',
+              label: 'Agenda de Carros',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_add_alt_1_outlined),
@@ -58,11 +58,11 @@ class _BottonNavigationState extends State<BottonNavigation> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.car_rental_outlined),
-              label: "Vehiculos",
+              label: "Agregar/Editar Vehiculos",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.inventory_2_outlined),
-              label: "Productos",
+              icon: Icon(Icons.history),
+              label: "Historial",
             ),
 
             // BottomNavigationBarItem(

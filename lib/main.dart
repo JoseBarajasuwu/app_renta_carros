@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:renta_carros/presentation/login/login_page.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await initializeDateFormatting('es_ES', null);
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     doWhenWindowReady(() {
       final initialSize = Size(600, 700);
@@ -17,6 +18,7 @@ void main() {
       appWindow.show();
     });
   }
+
   runApp(const MyApp());
 }
 
