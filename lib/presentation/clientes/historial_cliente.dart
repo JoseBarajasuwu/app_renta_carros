@@ -43,10 +43,28 @@ class HistorialClientePage extends StatelessWidget {
                     color: Color(0xFFbcc9d3),
                     margin: const EdgeInsets.all(8),
                     child: ListTile(
-                      title: Text(renta.auto),
-                      subtitle: Text(
-                        'Del ${_formatoFecha(renta.fechaInicio)} al ${_formatoFecha(renta.fechaFin)}',
-                        style: const TextStyle(fontFamily: 'Quicksand'),
+                      title: Text(
+                        renta.auto,
+                        style: const TextStyle(
+                          fontFamily: 'Quicksand',
+                          color: Color(0xFF204c6c),
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\$950',
+                            style: const TextStyle(
+                              fontFamily: 'Quicksand',
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            'Del ${_formatoFecha(renta.fechaInicio)} al ${_formatoFecha(renta.fechaFin)}',
+                            style: const TextStyle(fontFamily: 'Quicksand'),
+                          ),
+                        ],
                       ),
                     ),
                   );

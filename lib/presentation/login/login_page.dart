@@ -5,7 +5,7 @@ import 'package:renta_carros/core/widgets_perosnalizados/styles.dart';
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
-  final _formKey = GlobalKey<FormState>();
+  final formLogin = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -34,7 +34,7 @@ class LoginPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Form(
-                    key: _formKey,
+                    key: formLogin,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -63,7 +63,7 @@ class LoginPage extends StatelessWidget {
                             onPressed:
                                 () => validacionLogin(
                                   context,
-                                  _formKey.currentState!.validate(),
+                                  formLogin.currentState!.validate(),
                                 ),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),

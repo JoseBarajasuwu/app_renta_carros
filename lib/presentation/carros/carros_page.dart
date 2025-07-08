@@ -37,12 +37,9 @@ class _VehiculosPageState extends State<VehiculosPage> {
   final TextEditingController anioController = TextEditingController();
   final TextEditingController buscarController = TextEditingController();
 
-  final TextEditingController rentaController = TextEditingController();
-  final TextEditingController servicioController = TextEditingController();
-
   int? indexEditando;
   int? indexSeleccionado;
-
+  final formCarro = GlobalKey<FormState>();
   void guardarVehiculo() {
     String nombre = nombreController.text.trim();
     String sobrenombre = sobrenombreController.text.trim();
@@ -94,22 +91,83 @@ class _VehiculosPageState extends State<VehiculosPage> {
     });
   }
 
-  void agregarRenta() {
-    final monto = double.tryParse(rentaController.text);
-    if (monto == null || indexSeleccionado == null) return;
-    setState(() {
-      vehiculos[indexSeleccionado!].rentas.add(monto);
-      rentaController.clear();
-    });
-  }
+  mostrarDialogoEliminarCarro(
+    BuildContext context,
+    int index,
+    String nombreCarro,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFbcc9d3), // color base claro
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '¿Estás seguro de eliminar este carro?',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Quicksand',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          content: Text(
+            nombreCarro,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF204c6c),
+              fontFamily: 'Quicksand',
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF204c6c),
+              ),
 
-  void agregarServicio() {
-    final monto = double.tryParse(servicioController.text);
-    if (monto == null || indexSeleccionado == null) return;
-    setState(() {
-      vehiculos[indexSeleccionado!].servicios.add(monto);
-      servicioController.clear();
-    });
+              onPressed: () {
+                Navigator.of(context).pop(false); // cancelar
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: () {
+                eliminarVehiculo(index);
+
+                Navigator.of(context).pop(); // confirmar
+              },
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   List<Vehiculo> get vehiculosFiltrados {
@@ -120,6 +178,15 @@ class _VehiculosPageState extends State<VehiculosPage> {
           v.sobrenombre.toLowerCase().contains(query) ||
           v.anio.toString().contains(query);
     }).toList();
+  }
+
+  @override
+  void dispose() {
+    nombreController.dispose();
+    sobrenombreController.dispose();
+    anioController.dispose();
+    buscarController.dispose();
+    super.dispose();
   }
 
   Set<int> indicesExpandidos = {};
@@ -136,7 +203,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  TextFormField(
+                  TextField(
                     controller: buscarController,
                     decoration: InputDecoration(
                       labelText: 'Buscar',
@@ -149,6 +216,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    style: TextStyle(fontFamily: 'Quicksand'),
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
@@ -158,7 +226,6 @@ class _VehiculosPageState extends State<VehiculosPage> {
                       itemBuilder: (context, index) {
                         final vehiculos = vehiculosFiltrados[index];
                         final estaExpandido = indicesExpandidos.contains(index);
-
                         return Column(
                           children: [
                             ListTile(
@@ -197,7 +264,12 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                       Icons.delete,
                                       color: Colors.redAccent,
                                     ),
-                                    onPressed: () => eliminarVehiculo(index),
+                                    onPressed:
+                                        () => mostrarDialogoEliminarCarro(
+                                          context,
+                                          index,
+                                          '${vehiculos.nombre} - ${vehiculos.sobrenombre} ${vehiculos.anio.toString()}',
+                                        ),
                                   ),
                                 ],
                               ),
@@ -212,25 +284,36 @@ class _VehiculosPageState extends State<VehiculosPage> {
                               },
                             ),
                             if (estaExpandido)
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Total Rentas: \$${vehiculos.totalRentas.toStringAsFixed(2)}",
-                                    ),
-                                    Text(
-                                      "Total Servicios: \$${vehiculos.totalServicios.toStringAsFixed(2)}",
-                                    ),
-                                    Text(
-                                      "Ganancia Neta: \$${vehiculos.ganancia.toStringAsFixed(2)}",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green[900],
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16),
+                                child: Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Total Rentas: \$${vehiculos.totalRentas.toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          fontFamily: 'Quicksand',
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      Text(
+                                        "Total Servicios: \$${vehiculos.totalServicios.toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          fontFamily: 'Quicksand',
+                                        ),
+                                      ),
+                                      Text(
+                                        "Ganancia Neta: \$${vehiculos.ganancia.toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green[900],
+                                          fontFamily: 'Quicksand',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                           ],
@@ -249,119 +332,112 @@ class _VehiculosPageState extends State<VehiculosPage> {
             child: Container(
               color: const Color(0xFFbcc9d3),
               padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    indexEditando == null
-                        ? 'Agregar Vehículo'
-                        : 'Editar Vehículo',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Quicksand',
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: nombreController,
-                    style: TextStyle(fontFamily: 'Quicksand'),
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: sobrenombreController,
-                    style: TextStyle(fontFamily: 'Quicksand'),
-                    decoration: const InputDecoration(
-                      labelText: 'Sobrenombre',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: anioController,
-                    style: TextStyle(fontFamily: 'Quicksand'),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Año',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      icon: Icon(
-                        indexEditando == null ? Icons.add : Icons.save,
+              child: Form(
+                key: formCarro,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      indexEditando == null
+                          ? 'Agregar Vehículo'
+                          : 'Editar Vehículo',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Quicksand',
                       ),
-                      onPressed: guardarVehiculo,
-                      label: Text(
-                        indexEditando == null ? 'Agregar' : 'Guardar',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Quicksand',
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: nombreController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre',
+                        border: OutlineInputBorder(),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-Z\s]'),
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
+                        LengthLimitingTextInputFormatter(100),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Agrega el nombre del vehículo";
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                  const Divider(height: 40),
-                  if (indexSeleccionado != null) ...[
-                    // const Text(
-                    //   "Agregar Renta",
-                    //   style: TextStyle(fontWeight: FontWeight.bold),
-                    // ),
-                    // Row(
-                    //   children: [
-                    //     Expanded(
-                    //       child: TextFormField(
-                    //         controller: rentaController,
-                    //         decoration: const InputDecoration(
-                    //           labelText: 'Monto',
-                    //         ),
-                    //         keyboardType: TextInputType.number,
-                    //       ),
-                    //     ),
-                    //     IconButton(
-                    //       icon: const Icon(Icons.add),
-                    //       onPressed: agregarRenta,
-                    //     ),
-                    //   ],
-                    // ),
-                    // const SizedBox(height: 10),
-                    const Text(
-                      "Agregar Servicio",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: sobrenombreController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      decoration: const InputDecoration(
+                        labelText: 'Sobrenombre',
+                        border: OutlineInputBorder(),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-Z\s]'),
+                        ),
+                        LengthLimitingTextInputFormatter(100),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Agrega un sobrenombre para el vehículo";
+                        }
+                        return null;
+                      },
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: servicioController,
-                            decoration: const InputDecoration(
-                              labelText: 'Monto',
-                            ),
-                            keyboardType: TextInputType.number,
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: anioController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Año',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null ||
+                            value.trim().isEmpty ||
+                            value.length != 4) {
+                          return "Agrega un año válido";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton.icon(
+                        icon: Icon(
+                          indexEditando == null ? Icons.add : Icons.save,
+                        ),
+                        onPressed: () {
+                          if (formCarro.currentState!.validate()) {
+                            guardarVehiculo();
+                          }
+                        },
+                        label: Text(
+                          indexEditando == null ? 'Agregar' : 'Guardar',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Quicksand',
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: agregarServicio,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                      ],
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
             ),
           ),

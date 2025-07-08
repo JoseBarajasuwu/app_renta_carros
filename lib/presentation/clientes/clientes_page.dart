@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:renta_carros/core/utils/formateo_celularl.dart';
+import 'package:renta_carros/core/utils/formateo_celular.dart';
 import 'package:renta_carros/presentation/clientes/historial_cliente.dart';
 
 class Cliente {
   String nombre;
+  String apellido;
   String celular;
   List<Renta> historial;
 
   Cliente({
     required this.nombre,
     required this.celular,
+    required this.apellido,
     this.historial = const [],
   });
 }
@@ -37,7 +39,8 @@ class ClientesPage extends StatefulWidget {
 class _ClientesPageState extends State<ClientesPage> {
   final List<Cliente> clientes = [
     Cliente(
-      nombre: "Juan Pérez",
+      nombre: "Juan",
+      apellido: "Pérez",
       celular: "3411002810",
       historial: [
         Renta(
@@ -53,7 +56,8 @@ class _ClientesPageState extends State<ClientesPage> {
       ],
     ),
     Cliente(
-      nombre: "María García",
+      nombre: "María",
+      apellido: "García",
       celular: "maria@mail.com",
       historial: [
         Renta(
@@ -65,24 +69,29 @@ class _ClientesPageState extends State<ClientesPage> {
     ),
   ];
 
-  final TextEditingController nombreController = TextEditingController();
-  final TextEditingController celularController = TextEditingController();
-  final TextEditingController buscarController = TextEditingController();
+  TextEditingController nombreController = TextEditingController();
+  TextEditingController apellidoController = TextEditingController();
+  TextEditingController celularController = TextEditingController();
+  TextEditingController buscarController = TextEditingController();
   int? indexEditando;
-
+  final formCliente = GlobalKey<FormState>();
   void guardarCliente() {
     String nombre = nombreController.text.trim();
+    String apellido = apellidoController.text.trim();
     String celular = celularController.text.trim();
 
-    if (nombre.isEmpty || celular.isEmpty) return;
+    if (nombre.isEmpty || celular.isEmpty || apellido.isEmpty) return;
 
     setState(() {
       if (indexEditando == null) {
-        clientes.add(Cliente(nombre: nombre, celular: celular));
+        clientes.add(
+          Cliente(nombre: nombre, apellido: apellido, celular: celular),
+        );
       } else {
         final historialExistente = clientes[indexEditando!].historial;
         clientes[indexEditando!] = Cliente(
           nombre: nombre,
+          apellido: apellido,
           celular: celular,
           historial: historialExistente,
         );
@@ -90,6 +99,7 @@ class _ClientesPageState extends State<ClientesPage> {
       }
 
       nombreController.clear();
+      apellidoController.clear();
       celularController.clear();
     });
   }
@@ -98,6 +108,7 @@ class _ClientesPageState extends State<ClientesPage> {
     setState(() {
       indexEditando = index;
       nombreController.text = clientes[index].nombre;
+      apellidoController.text = clientes[index].apellido;
       celularController.text = clientes[index].celular;
     });
   }
@@ -106,6 +117,7 @@ class _ClientesPageState extends State<ClientesPage> {
     setState(() {
       if (index == indexEditando) {
         nombreController.clear();
+        apellidoController.clear();
         celularController.clear();
         indexEditando = null;
       }
@@ -118,8 +130,96 @@ class _ClientesPageState extends State<ClientesPage> {
     if (query.isEmpty) return clientes;
     return clientes.where((cliente) {
       return cliente.nombre.toLowerCase().contains(query) ||
+          cliente.apellido.toLowerCase().contains(query) ||
           cliente.celular.toLowerCase().contains(query);
     }).toList();
+  }
+
+  @override
+  void dispose() {
+    nombreController.dispose();
+    apellidoController.dispose();
+    celularController.dispose();
+    super.dispose();
+  }
+
+  mostrarDialogoEliminarCliente(
+    BuildContext context,
+    int index,
+    String nombreCliente,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFbcc9d3), // color base claro
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '¿Estás seguro de eliminar este cliente?',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Quicksand',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          content: Text(
+            nombreCliente,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF204c6c),
+              fontFamily: 'Quicksand',
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF204c6c),
+              ),
+
+              onPressed: () {
+                Navigator.of(context).pop(false); // cancelar
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.redAccent,
+              ),
+              onPressed: () {
+                // eliminarVehiculo(index);
+                eliminarCliente(index);
+                Navigator.of(context).pop(); // confirmar
+              },
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -140,6 +240,12 @@ class _ClientesPageState extends State<ClientesPage> {
                 children: [
                   TextField(
                     controller: buscarController,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'[a-zA-ZñÑ\s]'),
+                      ),
+                      LengthLimitingTextInputFormatter(100),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'Buscar',
                       labelStyle: TextStyle(
@@ -151,6 +257,7 @@ class _ClientesPageState extends State<ClientesPage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    style: TextStyle(fontFamily: 'Quicksand'),
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
@@ -170,7 +277,7 @@ class _ClientesPageState extends State<ClientesPage> {
                             fontFamily: 'Quicksand',
                             color: Colors.black,
                           ),
-                          title: Text(cliente.nombre),
+                          title: Text("${cliente.nombre} ${cliente.apellido}"),
                           subtitle: Text(
                             cliente.celular,
                             style: TextStyle(fontFamily: 'Quicksand'),
@@ -191,7 +298,12 @@ class _ClientesPageState extends State<ClientesPage> {
                                   Icons.delete,
                                   color: Colors.redAccent,
                                 ),
-                                onPressed: () => eliminarCliente(index),
+                                onPressed:
+                                    () => mostrarDialogoEliminarCliente(
+                                      context,
+                                      index,
+                                      "${cliente.nombre} ${cliente.apellido}",
+                                    ),
                               ),
                             ],
                           ),
@@ -220,63 +332,113 @@ class _ClientesPageState extends State<ClientesPage> {
             child: Container(
               color: Color(0xFFbcc9d3),
               padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    indexEditando == null
-                        ? "Agregar Cliente"
-                        : "Editar Cliente",
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Quicksand',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: nombreController,
-                    style: TextStyle(fontFamily: 'Quicksand'),
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: celularController,
-                    style: TextStyle(fontFamily: 'Quicksand'),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      CelularFormatter(),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Celular',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      icon: Icon(
-                        indexEditando == null ? Icons.add : Icons.save,
+              child: Form(
+                key: formCliente,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      indexEditando == null
+                          ? "Agregar Cliente"
+                          : "Editar Cliente",
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Quicksand',
                       ),
-                      onPressed: guardarCliente,
-                      label: Text(
-                        indexEditando == null ? 'Agregar' : 'Guardar',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Quicksand',
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: nombreController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre',
+                        border: OutlineInputBorder(),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-ZñÑ\s]'),
+                        ),
+                        LengthLimitingTextInputFormatter(100),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Agrega el nombre del cliente";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: apellidoController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      decoration: const InputDecoration(
+                        labelText: 'Apellido',
+                        border: OutlineInputBorder(),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-ZñÑ\s]'),
+                        ),
+                        LengthLimitingTextInputFormatter(100),
+                      ],
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Agrega el apellido";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: celularController,
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        CelularFormatter(),
+                      ],
+                      decoration: const InputDecoration(
+                        labelText: 'Celular',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Agrega un celular";
+                        }
+                        String cleanVlaue = value.replaceAll('-', '');
+                        if (cleanVlaue.length != 10) {
+                          return "Agrega un celular válido";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton.icon(
+                        icon: Icon(
+                          indexEditando == null ? Icons.add : Icons.save,
+                        ),
+                        onPressed: () {
+                          if (formCliente.currentState!.validate()) {
+                            guardarCliente();
+                          }
+                        },
+                        label: Text(
+                          indexEditando == null ? 'Agregar' : 'Guardar',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Quicksand',
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

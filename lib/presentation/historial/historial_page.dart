@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:renta_carros/presentation/historial/utils_historial.dart';
 import 'package:renta_carros/presentation/historial/widgets/info_rows.dart';
 
@@ -30,31 +31,54 @@ class _HistorialPageState extends State<HistorialPage> {
       model: "Toyota Corolla",
       renta: 800,
       services: [
-        Service("Cambio de aceite", 50),
+        Service("Cambio de aceite", 5000),
         Service("Alineación", 30),
         Service("Frenos", 120),
       ],
     ),
     Car(
       model: "Honda Civic",
-      renta: 600,
-      services: [Service("Cambio de batería", 100), Service("Lavado", 25)],
+      renta: 900,
+      services: [Service("Cambio de batería", 5000), Service("Lavado", 25)],
     ),
   ];
+  double dtotalRenta = 0;
+  double dtotalCostos = 0;
+  double dtotalGananciaNeta = 0;
+
+  String stotalRenta = "";
+  String stotalCostos = "";
+  String stotalGananciaNeta = "";
+
+  // Puedes usar esta si quieres sin símbolo pero con separadores decimales y miles
+  final NumberFormat _formatter = NumberFormat("#,##0.00", "es_MX");
+
+  // O esta si quieres que incluya el símbolo "$"
+  // final NumberFormat _formatter = NumberFormat.currency(locale: "es_MX", symbol: "\$");
+
+  void cargaRentas() {
+    // Acumular los valores de cada carro
+    for (final car in cars) {
+      final costo = car.services.fold(0.0, (sum, s) => sum + s.cost);
+      dtotalRenta += car.renta;
+      dtotalCostos += costo;
+      dtotalGananciaNeta += car.renta - costo;
+    }
+
+    // Formatear correctamente los resultados (pasando `double`, no `String`)
+    stotalRenta = _formatter.format(dtotalRenta);
+    stotalCostos = _formatter.format(dtotalCostos);
+    stotalGananciaNeta = _formatter.format(dtotalGananciaNeta);
+  }
+
+  @override
+  void initState() {
+    cargaRentas();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    double totalRenta = 0;
-    double totalCostos = 0;
-    double totalGananciaNeta = 0;
-
-    for (final car in cars) {
-      final costo = car.services.fold(0.0, (sum, s) => sum + s.cost);
-      totalRenta += car.renta;
-      totalCostos += costo;
-      totalGananciaNeta += car.renta - costo;
-    }
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -66,18 +90,15 @@ class _HistorialPageState extends State<HistorialPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    InfoRow(
-                      label: "Total en rentas:",
-                      value: "\$${totalRenta.toStringAsFixed(2)}",
-                    ),
+                    InfoRow(label: "Total en rentas:", value: "\$$stotalRenta"),
                     InfoRow(
                       label: "Total en servicios:",
-                      value: "- \$${totalCostos.toStringAsFixed(2)}",
+                      value: "- \$$stotalCostos",
                     ),
                     Divider(),
                     InfoRow(
                       label: "Ganancia neta total:",
-                      value: "\$${totalGananciaNeta.toStringAsFixed(2)}",
+                      value: "\$$stotalGananciaNeta",
                       bold: true,
                     ),
                   ],
@@ -94,8 +115,10 @@ class _HistorialPageState extends State<HistorialPage> {
                     0.0,
                     (sum, s) => sum + s.cost,
                   );
-                  final gananciaNeta = car.renta - totalServicios;
 
+                  final ganacia = car.renta - totalServicios;
+                  final gananciaNeta = _formatter.format(ganacia);
+                  final totalServicio = _formatter.format(totalServicios);
                   return Card(
                     elevation: 3,
                     color: Color(0xFFbcc9d3),
@@ -127,6 +150,7 @@ class _HistorialPageState extends State<HistorialPage> {
                             ),
                           ),
                           ...car.services.map((service) {
+                            final serviceCost = _formatter.format(service.cost);
                             return Row(
                               children: [
                                 Expanded(
@@ -138,7 +162,7 @@ class _HistorialPageState extends State<HistorialPage> {
                                 SizedBox(
                                   width: 100,
                                   child: Text(
-                                    "\$${service.cost.toStringAsFixed(2)}",
+                                    "\$$serviceCost",
                                     textAlign: TextAlign.right,
                                     style: TextStyle(fontFamily: 'Quicksand'),
                                   ),
@@ -149,11 +173,11 @@ class _HistorialPageState extends State<HistorialPage> {
                           Divider(),
                           InfoRow(
                             label: "Total servicios:",
-                            value: "- \$${totalServicios.toStringAsFixed(2)}",
+                            value: "\$$totalServicio",
                           ),
                           InfoRow(
                             label: "Ganancia neta:",
-                            value: "\$${gananciaNeta.toStringAsFixed(2)}",
+                            value: "\$$gananciaNeta",
                             bold: true,
                           ),
                         ],
