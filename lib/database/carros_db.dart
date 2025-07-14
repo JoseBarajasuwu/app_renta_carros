@@ -1,0 +1,64 @@
+import 'database.dart';
+
+void importCarrosTabla() {
+  DatabaseHelper().db.execute('''
+    CREATE TABLE IF NOT EXISTS Carro (
+      CarroID INTEGER PRIMARY KEY AUTOINCREMENT,
+      NombreCarro TEXT NOT NULL,
+      Anio INTEGER NOT NULL,
+      Placas TEXT NOT NULL,
+      Estado INTEGER
+    );
+  ''');
+}
+
+class CarroDAO {
+  static void insertar({
+    required String nombreCarro,
+    required int anio,
+    required String placas,
+  }) {
+    DatabaseHelper().db.execute(
+      'INSERT INTO Carro (NombreCarro, Anio, Placas) VALUES (?, ?, ?)',
+      [nombreCarro, anio, placas],
+    );
+  }
+
+  static List<Map<String, dynamic>> obtenerTodos() {
+    final result = DatabaseHelper().db.select('''
+    SELECT 
+      CarroID,
+      NombreCarro,
+      Anio,
+      Placas
+     FROM Carro
+''');
+    // Construir lista de mapas
+    return result.map((row) {
+      return {
+        'CarroID': row['CarroID'],
+        'NombreCarro': row['NombreCarro'],
+        'Anio': row['Anio'],
+        'Placas': row['Placas'],
+      };
+    }).toList();
+  }
+
+  static void actualizar({
+    required int carroID,
+    required String nombreCarro,
+    required int anio,
+    required String placas,
+  }) {
+    DatabaseHelper().db.execute(
+      'UPDATE Carro SET NombreCarro = ?, Anio = ?, Placas = ? WHERE CarroID = ?',
+      [nombreCarro, anio, placas, carroID],
+    );
+  }
+
+  static void eliminar({required int carroID}) {
+    DatabaseHelper().db.execute('DELETE FROM Carro WHERE CarroID = ?', [
+      carroID,
+    ]);
+  }
+}

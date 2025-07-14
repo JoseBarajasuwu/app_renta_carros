@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:renta_carros/presentation/clientes/clientes_page.dart';
+import 'package:renta_carros/database/clientes_db.dart';
 
-class HistorialClientePage extends StatelessWidget {
-  final Cliente cliente;
+class HistorialClientePage extends StatefulWidget {
+  final int clienteID;
+  final String nombreCliente;
+  const HistorialClientePage({
+    super.key,
+    required this.clienteID,
+    required this.nombreCliente,
+  });
+  @override
+  State<HistorialClientePage> createState() => _HistorialClientePageState();
+}
 
-  const HistorialClientePage({super.key, required this.cliente});
+class _HistorialClientePageState extends State<HistorialClientePage> {
+  List<Map<String, dynamic>> lCliente = [];
+  void cargaHistorialCliente() {
+    final lista = ClienteDAO.obtenerHistorialCliente(
+      clienteID: widget.clienteID,
+    );
+    setState(() {
+      lCliente = lista;
+    });
+  }
+
+  @override
+  void initState() {
+    cargaHistorialCliente();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(
-      //     'Historial de ${cliente.nombre}',
-
-      //   ),
-      //   backgroundColor: Color(0xFF204c6c),
-      // ),
       appBar: AppBar(
         title: Text(
-          'Historial de ${cliente.nombre}',
+          'Historial de ${widget.nombreCliente}',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontFamily: 'Quicksand',
@@ -33,18 +50,17 @@ class HistorialClientePage extends StatelessWidget {
         backgroundColor: Color(0xFF204c6c),
       ),
       body:
-          cliente.historial.isEmpty
+          lCliente.isEmpty
               ? const Center(child: Text('No hay rentas registradas'))
               : ListView.builder(
-                itemCount: cliente.historial.length,
+                itemCount: lCliente.length,
                 itemBuilder: (context, index) {
-                  final renta = cliente.historial[index];
                   return Card(
                     color: Color(0xFFbcc9d3),
                     margin: const EdgeInsets.all(8),
                     child: ListTile(
                       title: Text(
-                        renta.auto,
+                        lCliente[index]["NombreCarro"],
                         style: const TextStyle(
                           fontFamily: 'Quicksand',
                           color: Color(0xFF204c6c),
@@ -54,14 +70,35 @@ class HistorialClientePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '\$950',
+                            '${lCliente[index]["Anio"]}',
                             style: const TextStyle(
                               fontFamily: 'Quicksand',
                               color: Colors.green,
                             ),
                           ),
                           Text(
-                            'Del ${_formatoFecha(renta.fechaInicio)} al ${_formatoFecha(renta.fechaFin)}',
+                            '${lCliente[index]["Placas"]}',
+                            style: const TextStyle(
+                              fontFamily: 'Quicksand',
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            'Total: \$${lCliente[index]["PrecioTotal"]}',
+                            style: const TextStyle(
+                              fontFamily: 'Quicksand',
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            'Abonado: \$${lCliente[index]["PrecioPagado"]}',
+                            style: const TextStyle(
+                              fontFamily: 'Quicksand',
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            'Del ${_formatoFecha(lCliente[index]["FechaInicio"])} al ${_formatoFecha(lCliente[index]["FechaFin"])}',
                             style: const TextStyle(fontFamily: 'Quicksand'),
                           ),
                         ],

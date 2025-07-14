@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:renta_carros/core/login/metods/validacion_login.dart';
-import 'package:renta_carros/core/widgets_perosnalizados/styles.dart';
+import 'package:renta_carros/core/widgets_personalizados/styles.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
