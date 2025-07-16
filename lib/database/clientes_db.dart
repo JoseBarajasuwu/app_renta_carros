@@ -38,6 +38,15 @@ class ClienteDAO {
     }).toList();
   }
 
+  static List<Map<String, dynamic>> obtenerClienteAgenda() {
+    final result = DatabaseHelper().db.select(
+      'SELECT ClienteID, Nombre FROM Cliente',
+    );
+    return result.map((row) {
+      return {'ClienteID': row['ClienteID'], 'Nombre': row['Nombre']};
+    }).toList();
+  }
+
   static List<Map<String, dynamic>> obtenerHistorialCliente({
     required int clienteID,
   }) {

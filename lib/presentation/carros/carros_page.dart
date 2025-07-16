@@ -20,38 +20,40 @@ class _VehiculosPageState extends State<VehiculosPage> {
 
   int? indexEditando;
   final formCarro = GlobalKey<FormState>();
-
-  void cargaCarros() {
+  bool isLoading = false;
+  Future<void> cargaCarros() async {
+    setState(() => isLoading = true);
     final lista = CarroDAO.obtenerTodos();
     setState(() {
       lVehiculos = lista;
+      isLoading = false;
     });
   }
 
-  void guardarVehiculo() {
+  void guardarVehiculo() async {
     String nombre = nombreController.text.trim();
     String placas = placasController.text.trim();
     int? anio = int.tryParse(anioController.text.trim()) ?? 0;
 
     if (nombre.isEmpty || placas.isEmpty || anio == 0) return;
-
     setState(() {
-      if (indexEditando == null) {
-        CarroDAO.insertar(nombreCarro: nombre, anio: anio, placas: placas);
-      } else {
-        CarroDAO.actualizar(
-          carroID: indexEditando!,
-          nombreCarro: nombre,
-          anio: anio,
-          placas: placas,
-        );
-        indexEditando = null;
-      }
-      nombreController.clear();
-      placasController.clear();
-      anioController.clear();
+      isLoading = true;
     });
-    cargaCarros();
+    if (indexEditando == null) {
+      CarroDAO.insertar(nombreCarro: nombre, anio: anio, placas: placas);
+    } else {
+      CarroDAO.actualizar(
+        carroID: indexEditando!,
+        nombreCarro: nombre,
+        anio: anio,
+        placas: placas,
+      );
+      indexEditando = null;
+    }
+    nombreController.clear();
+    placasController.clear();
+    anioController.clear();
+    await cargaCarros();
   }
 
   void editarVehiculo({
@@ -68,17 +70,18 @@ class _VehiculosPageState extends State<VehiculosPage> {
     anioController.text = anio;
   }
 
-  void eliminarVehiculo(int index) {
+  void eliminarVehiculo(int index) async {
+    setState(() => isLoading = true);
     if (index == indexEditando) {
+      nombreController.clear();
+      placasController.clear();
+      anioController.clear();
       setState(() {
-        nombreController.clear();
-        placasController.clear();
-        anioController.clear();
         indexEditando = null;
       });
     }
     CarroDAO.eliminar(carroID: index);
-    cargaCarros();
+    await cargaCarros();
   }
 
   List<Map<String, dynamic>> get vehiculosFiltrados {
@@ -114,257 +117,270 @@ class _VehiculosPageState extends State<VehiculosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Panel Izquierdo - Lista de Vehículos
-          Expanded(
-            flex: 3,
-            child:
-                lVehiculos.isNotEmpty
-                    ? Container(
-                      color: const Color(0xFF90a6b6),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: buscarController,
-                            decoration: InputDecoration(
-                              labelText: 'Buscar',
-                              labelStyle: TextStyle(
-                                color: Colors.black87,
-                                fontFamily: 'Quicksand',
-                              ),
-                              prefixIcon: const Icon(Icons.search),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            style: TextStyle(fontFamily: 'Quicksand'),
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: vehiculosFiltrados.length,
-                              itemBuilder: (context, index) {
-                                int carroID =
-                                    vehiculosFiltrados[index]["CarroID"];
-                                String nombreCarro =
-                                    vehiculosFiltrados[index]["NombreCarro"];
-                                String anio =
-                                    vehiculosFiltrados[index]["Anio"]
-                                        .toString();
-                                String placa =
-                                    vehiculosFiltrados[index]["Placas"];
-                                return Column(
-                                  children: [
-                                    ListTile(
-                                      titleTextStyle: const TextStyle(
-                                        fontSize: 18,
+      body:
+          isLoading
+              ? const Center(
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  color: Colors.blueAccent,
+                ),
+              )
+              : Row(
+                children: [
+                  // Panel Izquierdo - Lista de Vehículos
+                  Expanded(
+                    flex: 3,
+                    child:
+                        lVehiculos.isNotEmpty
+                            ? Container(
+                              color: const Color(0xFF90a6b6),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: buscarController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Buscar',
+                                      labelStyle: TextStyle(
+                                        color: Colors.black87,
                                         fontFamily: 'Quicksand',
-                                        color: Colors.black,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      subtitleTextStyle: TextStyle(
-                                        fontFamily: 'Quicksand',
-                                        color: Colors.black,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      title: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            nombreCarro,
-                                            maxLines: 5,
-                                            softWrap: true,
-                                          ),
-                                          Text(anio),
-                                        ],
-                                      ),
-
-                                      subtitle: Text(placa),
-                                      trailing: Wrap(
-                                        spacing: 12,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              color: Color(0xFF204c6c),
-                                            ),
-                                            onPressed:
-                                                () => editarVehiculo(
-                                                  carroID: carroID,
-                                                  nombreCarro: nombreCarro,
-                                                  placa: placa,
-                                                  anio: anio,
-                                                ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Colors.redAccent,
-                                            ),
-                                            onPressed:
-                                                () => mostrarDialogoEliminarCarro(
-                                                  context,
-                                                  carroID,
-                                                  '$nombreCarro, $anio $placa',
-                                                ),
-                                          ),
-                                        ],
+                                      prefixIcon: const Icon(Icons.search),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                  ],
-                                );
+                                    style: TextStyle(fontFamily: 'Quicksand'),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      itemCount: vehiculosFiltrados.length,
+                                      itemBuilder: (context, index) {
+                                        int carroID =
+                                            vehiculosFiltrados[index]["CarroID"];
+                                        String nombreCarro =
+                                            vehiculosFiltrados[index]["NombreCarro"];
+                                        String anio =
+                                            vehiculosFiltrados[index]["Anio"]
+                                                .toString();
+                                        String placa =
+                                            vehiculosFiltrados[index]["Placas"];
+                                        return Column(
+                                          children: [
+                                            ListTile(
+                                              titleTextStyle: const TextStyle(
+                                                fontSize: 18,
+                                                fontFamily: 'Quicksand',
+                                                color: Colors.black,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              subtitleTextStyle: TextStyle(
+                                                fontFamily: 'Quicksand',
+                                                color: Colors.black,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              title: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    nombreCarro,
+                                                    maxLines: 5,
+                                                    softWrap: true,
+                                                  ),
+                                                  Text(anio),
+                                                ],
+                                              ),
+
+                                              subtitle: Text(placa),
+                                              trailing: Wrap(
+                                                spacing: 12,
+                                                children: [
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.edit,
+                                                      color: Color(0xFF204c6c),
+                                                    ),
+                                                    onPressed:
+                                                        () => editarVehiculo(
+                                                          carroID: carroID,
+                                                          nombreCarro:
+                                                              nombreCarro,
+                                                          placa: placa,
+                                                          anio: anio,
+                                                        ),
+                                                  ),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.delete,
+                                                      color: Colors.redAccent,
+                                                    ),
+                                                    onPressed:
+                                                        () => mostrarDialogoEliminarCarro(
+                                                          context,
+                                                          carroID,
+                                                          '$nombreCarro, $anio $placa',
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            : Container(
+                              color: Color(0XFF90a6b6),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "No hay datos para mostrar",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Quicksand',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                  ),
+
+                  // Panel Derecho - Formulario y Agregar Rentas/Servicios
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      color: const Color(0xFFbcc9d3),
+                      padding: const EdgeInsets.all(32),
+                      child: Form(
+                        key: formCarro,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              indexEditando == null
+                                  ? 'Agregar Vehículo'
+                                  : 'Editar Vehículo',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Quicksand',
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            TextFormField(
+                              controller: nombreController,
+                              style: TextStyle(fontFamily: 'Quicksand'),
+                              decoration: const InputDecoration(
+                                labelText: 'Nombre',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[a-zA-Z\s]'),
+                                ),
+                                LengthLimitingTextInputFormatter(100),
+                              ],
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Agrega el nombre del vehículo";
+                                }
+                                return null;
                               },
                             ),
-                          ),
-                        ],
-                      ),
-                    )
-                    : Container(
-                      color: Color(0XFF90a6b6),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "No hay datos para mostrar",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Quicksand',
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: anioController,
+                              style: TextStyle(fontFamily: 'Quicksand'),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(4),
+                              ],
+                              decoration: const InputDecoration(
+                                labelText: 'Año',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.trim().isEmpty ||
+                                    value.length != 4) {
+                                  return "Agrega un año válido";
+                                }
+                                return null;
+                              },
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-          ),
+                            const SizedBox(height: 20),
 
-          // Panel Derecho - Formulario y Agregar Rentas/Servicios
-          Expanded(
-            flex: 2,
-            child: Container(
-              color: const Color(0xFFbcc9d3),
-              padding: const EdgeInsets.all(32),
-              child: Form(
-                key: formCarro,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      indexEditando == null
-                          ? 'Agregar Vehículo'
-                          : 'Editar Vehículo',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Quicksand',
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: nombreController,
-                      style: TextStyle(fontFamily: 'Quicksand'),
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'[a-zA-Z\s]'),
-                        ),
-                        LengthLimitingTextInputFormatter(100),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return "Agrega el nombre del vehículo";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: anioController,
-                      style: TextStyle(fontFamily: 'Quicksand'),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(4),
-                      ],
-                      decoration: const InputDecoration(
-                        labelText: 'Año',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null ||
-                            value.trim().isEmpty ||
-                            value.length != 4) {
-                          return "Agrega un año válido";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
+                            TextFormField(
+                              controller: placasController,
+                              style: TextStyle(fontFamily: 'Quicksand'),
+                              decoration: const InputDecoration(
+                                labelText: 'Placas',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[a-zA-Z0-9\s-]'),
+                                ),
+                                LengthLimitingTextInputFormatter(10),
+                                UpperCaseTextFormatter(),
+                              ],
 
-                    TextFormField(
-                      controller: placasController,
-                      style: TextStyle(fontFamily: 'Quicksand'),
-                      decoration: const InputDecoration(
-                        labelText: 'Placas',
-                        border: OutlineInputBorder(),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'[a-zA-Z0-9\s-]'),
-                        ),
-                        LengthLimitingTextInputFormatter(10),
-                        UpperCaseTextFormatter(),
-                      ],
-
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return "Agrega un sobrenombre para el vehículo";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 45,
-                      child: ElevatedButton.icon(
-                        icon: Icon(
-                          indexEditando == null ? Icons.add : Icons.save,
-                        ),
-                        onPressed: () {
-                          if (formCarro.currentState!.validate()) {
-                            mostrarDialogoAgregarCarro(
-                              context,
-                              indexEditando,
-                              "${nombreController.text} ${anioController.text} ${placasController.text}",
-                            );
-                          }
-                        },
-                        label: Text(
-                          indexEditando == null ? 'Agregar' : 'Guardar',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Quicksand',
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Agrega un sobrenombre para el vehículo";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 30),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 45,
+                              child: ElevatedButton.icon(
+                                icon: Icon(
+                                  indexEditando == null
+                                      ? Icons.add
+                                      : Icons.save,
+                                ),
+                                onPressed: () {
+                                  if (formCarro.currentState!.validate()) {
+                                    mostrarDialogoAgregarCarro(
+                                      context,
+                                      indexEditando,
+                                      "${nombreController.text} ${anioController.text} ${placasController.text}",
+                                    );
+                                  }
+                                },
+                                label: Text(
+                                  indexEditando == null ? 'Agregar' : 'Guardar',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Quicksand',
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

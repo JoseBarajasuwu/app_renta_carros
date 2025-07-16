@@ -1,18 +1,18 @@
 import 'database.dart';
 
-void importCalendarioTabla() {
-  DatabaseHelper().db.execute('''
-    CREATE TABLE IF NOT EXISTS CalendarioRenta (
-      CalendarioRentaID INTEGER PRIMARY KEY AUTOINCREMENT,
-      CarroID INTEGER NOT NULL,
-      ClienteID INTEGER NOT NULL,
-      FechaInicio TEXT NOT NULL,
-      FechaFin TEXT NOT NULL,
-      FOREIGN KEY (CarroID) REFERENCES Carro(CarroID),
-      FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID)
-    );
-  ''');
-}
+// void importCalendarioTabla() {
+//   DatabaseHelper().db.execute('''
+//     CREATE TABLE IF NOT EXISTS CalendarioRenta (
+//       CalendarioRentaID INTEGER PRIMARY KEY AUTOINCREMENT,
+//       CarroID INTEGER NOT NULL,
+//       ClienteID INTEGER NOT NULL,
+//       FechaInicio TEXT NOT NULL,
+//       FechaFin TEXT NOT NULL,
+//       FOREIGN KEY (CarroID) REFERENCES Carro(CarroID),
+//       FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID)
+//     );
+//   ''');
+// }
 
 class CalendarioDAO {
   static void insertar(int carroId, int clienteId, String inicio, String fin) {

@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:renta_carros/botton_navigation_tree.dart';
 import 'package:renta_carros/core/widgets_personalizados/theme_data.dart';
 import 'package:renta_carros/database/database.dart';
-import 'package:renta_carros/presentation/login/login_page.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:renta_carros/x.dart';
+import 'package:renta_carros/clico_de_vida_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,7 @@ void main() async {
       appWindow.minSize = Size(520, 600);
       appWindow.size = initialSize;
       appWindow.alignment = Alignment.center;
-      appWindow.title = "Iniciar sesión";
+      appWindow.title = "Renta Car";
       appWindow.show();
     });
   }
@@ -33,6 +33,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(theme: appTheme, home: LoginPage());
+    return MaterialApp(theme: appTheme, home: BottonNavigation());
   }
 }

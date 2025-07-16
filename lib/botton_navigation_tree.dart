@@ -19,9 +19,6 @@ class _BottonNavigationState extends State<BottonNavigation> {
     ClientesPage(),
     VehiculosPage(),
     HistorialPage(),
-    // const ProductosPage(),
-    // const InventarioPage(),
-    // const CuentaPage(),
   ];
 
   @override

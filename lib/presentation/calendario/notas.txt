@@ -1,0 +1,111 @@
+  Future<List<EstadoCarro>> obtenerEstadoCarros(DateTime dia) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    List<CitaCarro> todosCarros = [
+      CitaCarro(
+        nombreCarro: 'Camioneta A',
+        pagoMitad: 0,
+        tipoPago: "Terminal",
+        fechaInicio: DateTime(2025, 7, 1),
+        fechaFin: DateTime(2025, 7, 3),
+        horaFinOcupacion: const TimeOfDay(hour: 13, minute: 0),
+      ),
+      CitaCarro(
+        nombreCarro: 'Camioneta A',
+        pagoMitad: 0,
+        tipoPago: "Terminal",
+        fechaInicio: DateTime(2025, 7, 6),
+        fechaFin: DateTime(2025, 7, 8),
+        horaFinOcupacion: const TimeOfDay(hour: 13, minute: 0),
+      ),
+      CitaCarro(
+        nombreCarro: 'Sedán B',
+        pagoMitad: 0,
+        tipoPago: "Efectivo",
+        fechaInicio: DateTime(2025, 7, 5),
+        fechaFin: DateTime(2025, 7, 5),
+      ),
+      CitaCarro(
+        nombreCarro: 'SUV X',
+        pagoMitad: 1,
+        tipoPago: "Transferencia",
+        fechaInicio: DateTime(2025, 7, 2),
+        fechaFin: DateTime(2025, 7, 4),
+        horaFinOcupacion: const TimeOfDay(hour: 17, minute: 30),
+      ),
+      CitaCarro(
+        nombreCarro: 'Hatchback Y',
+        pagoMitad: 0,
+        tipoPago: "Efectivo",
+        fechaInicio: DateTime(2025, 7, 6),
+        fechaFin: DateTime(2025, 7, 6),
+      ),
+    ];
+    // final List<CitaCarro> todosCarros =
+    //     resultadoFromSQL.map((row) {
+    //       return CitaCarro(
+    //         nombreCarro: row['nombre_carro'],
+    //         fechaInicio: DateTime.parse(row['fecha_inicio']),
+    //         fechaFin: DateTime.parse(row['fecha_fin']),
+    //         pagoMitad: row['pago_mitad'],
+    //         tipoPago: row['tipo_pago'],
+    //         horaFinOcupacion:
+    //             row['hora_fin_ocupacion'] != null
+    //                 ? TimeOfDay(
+    //                   hour: int.parse(row['hora_fin_ocupacion'].split(":")[0]),
+    //                   minute: int.parse(
+    //                     row['hora_fin_ocupacion'].split(":")[1],
+    //                   ),
+    //                 )
+    //                 : null,
+    //       );
+    //     }).toList();
+    // Agrupar por nombreCarro
+    final Map<String, List<CitaCarro>> agrupados = {};
+
+    for (var carro in todosCarros) {
+      agrupados.putIfAbsent(carro.nombreCarro, () => []);
+      agrupados[carro.nombreCarro]!.add(carro);
+    }
+
+    // Evaluar si el carro está ocupado en ese día
+    final List<EstadoCarro> resultado = [];
+
+    agrupados.forEach((nombre, listaCitas) {
+      // Buscar si hay alguna cita activa en el día
+      final citasDelDia =
+          listaCitas.where((cita) => cita.estaOcupadoEnDia(dia)).toList();
+
+      if (citasDelDia.isNotEmpty) {
+        // Usar la primera cita del día (puedes elegir mejor lógica si quieres)
+        final citaActiva = citasDelDia.first;
+
+        resultado.add(
+          EstadoCarro(
+            nombreCarro: nombre,
+            ocupado: true,
+            pagoMitad: citaActiva.pagoMitad,
+            tipoPago: citaActiva.tipoPago,
+            fechaInicio: citaActiva.fechaInicio,
+            fechaFin: citaActiva.fechaFin,
+            horaFinOcupacion: citaActiva.horaFinOcupacion,
+          ),
+        );
+      } else {
+        // No está ocupado ese día
+        resultado.add(
+          EstadoCarro(
+            nombreCarro: nombre,
+            ocupado: false,
+            pagoMitad: 0,
+            tipoPago: '',
+            fechaInicio: dia,
+            fechaFin: dia,
+            horaFinOcupacion: null,
+          ),
+        );
+      }
+    });
+
+    return resultado;
+  }

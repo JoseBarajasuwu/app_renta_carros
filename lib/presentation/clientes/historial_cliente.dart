@@ -98,7 +98,7 @@ class _HistorialClientePageState extends State<HistorialClientePage> {
                             ),
                           ),
                           Text(
-                            'Del ${_formatoFecha(lCliente[index]["FechaInicio"])} al ${_formatoFecha(lCliente[index]["FechaFin"])}',
+                            'Del ${_formatoFechaDinamico(lCliente[index]["FechaInicio"])} al ${_formatoFechaDinamico(lCliente[index]["FechaFin"])}',
                             style: const TextStyle(fontFamily: 'Quicksand'),
                           ),
                         ],
@@ -110,7 +110,13 @@ class _HistorialClientePageState extends State<HistorialClientePage> {
     );
   }
 
-  String _formatoFecha(DateTime fecha) {
-    return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+  //"Faltan detalles minimos"
+  String _formatoFechaDinamico(dynamic fecha) {
+    try {
+      final f = fecha is DateTime ? fecha : DateTime.parse(fecha.toString());
+      return '${f.day.toString().padLeft(2, '0')}/${f.month.toString().padLeft(2, '0')}/${f.year}';
+    } catch (e) {
+      return 'Fecha inválida';
+    }
   }
 }
