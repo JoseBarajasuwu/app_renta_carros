@@ -101,32 +101,49 @@ class DetalleCitasPage extends StatelessWidget {
                       ),
                       if (iconoColor == Colors.orange ||
                           iconoColor == Colors.red)
-                        Text(
-                          estado.precioTotal.toString(),
-                          style: TextStyle(fontFamily: 'Quicksand'),
+                        Row(
+                          children: [
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(fontFamily: 'Quicksand'),
+                                children: [
+                                  TextSpan(
+                                    text: "Pagado: ",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  TextSpan(
+                                    text: '\$${estado.precioPagado}',
+                                    style: const TextStyle(color: Colors.green),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      if (iconoColor == Colors.orange ||
-                          iconoColor == Colors.red)
-                        Text(
-                          estado.precioPagado.toString(),
-                          style: TextStyle(fontFamily: 'Quicksand'),
-                        ),
-                      if (iconoColor == Colors.orange ||
-                          iconoColor == Colors.red)
-                        Text(
-                          "50%",
-                          style: TextStyle(
-                            color:
-                                estado.pagoMitad == 1
-                                    ? Colors.red
-                                    : Colors.green,
-                            fontFamily: 'Quicksand',
+
+                      Row(
+                        children: [
+                          Text(
+                            estado.tipoPago,
+                            style: TextStyle(fontFamily: 'Quicksand'),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "50%",
+                            style: TextStyle(
+                              color:
+                                  estado.pagoMitad == 1
+                                      ? Colors.red
+                                      : Colors.green,
+                              fontFamily: 'Quicksand',
+                            ),
+                          ),
+                        ],
+                      ),
                       if (iconoColor == Colors.orange ||
                           iconoColor == Colors.red)
                         Text(
-                          estado.tipoPago,
+                          estado.observacion,
                           style: TextStyle(fontFamily: 'Quicksand'),
                         ),
                     ],
@@ -134,12 +151,7 @@ class DetalleCitasPage extends StatelessWidget {
                   trailing:
                       agendarPosible
                           ? ElevatedButton(
-                            onPressed:
-                            // () => _mostrarFormularioAgendar(
-                            //   context,
-                            //   estado.nombreCarro,
-                            // ),
-                            () {
+                            onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

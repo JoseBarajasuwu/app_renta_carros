@@ -60,8 +60,8 @@ class _AgendarPageState extends State<AgendarPage> {
       lastDate: DateTime(2100),
     );
     if (fecha == null) return null;
-
     final hora = await showTimePicker(
+
       context: context,
       initialTime:
           initialDate != null
@@ -243,13 +243,16 @@ class _AgendarPageState extends State<AgendarPage> {
                 if (clientesFiltrados.length > 5)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Mostrando solo los primeros 5 resultados',
-                      style: TextStyle(
-                        fontFamily: 'Quicksand',
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[700],
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Mostrando solo los primeros 5 resultados',
+                        style: TextStyle(
+                          fontFamily: 'Quicksand',
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[700],
+                        ),
                       ),
                     ),
                   ),
@@ -398,6 +401,31 @@ class _AgendarPageState extends State<AgendarPage> {
                   fecha: fechaHoraFin,
                   onTap: () => _seleccionarFechaHoraFin(context),
                 ),
+
+                fechaHoraInicio == null || fechaHoraFin == null
+                    ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Te falta seleccionar fecha",
+                        style: const TextStyle(
+                          fontFamily: 'Quicksand',
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    )
+                    : fechaHoraInicio == fechaHoraFin
+                    ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "La fecha inicio y fecha fin, no pueden ser iguales",
+                        style: const TextStyle(
+                          fontFamily: 'Quicksand',
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    )
+                    : SizedBox(),
+
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: TextFormField(
@@ -422,7 +450,10 @@ class _AgendarPageState extends State<AgendarPage> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        if (formDetalle.currentState?.validate() ?? false) {
+                        bool diferentes =
+                            fechaHoraInicio == fechaHoraFin ? false : true;
+                        if (formDetalle.currentState!.validate() &&
+                            diferentes) {
                           _validarYConfirmar(
                             clienteID: clienteSeleccionado!,
                             carroID: widget.carroID,

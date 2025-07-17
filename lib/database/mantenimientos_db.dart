@@ -15,26 +15,21 @@ void importMantenimientosTabla() {
 }
 
 class MantenimientoDAO {
-  static void insertar(
-    int carroId,
-    String fecha,
-    String tipo,
-    double? costo,
-    String? descripcion,
-  ) {
+  static void insertar({
+    required int carroId,
+    required String fechaRegistro,
+    required String tipo,
+    required double costo,
+    required String descripcion,}
+  ) async{
     DatabaseHelper().db.execute(
       '''
-      INSERT INTO mantenimientos (carro_id, fecha, tipo_servicio, costo, descripcion)
+      INSERT INTO Mantenimiento (CarroID, FechaRegistro, TipoServicio, Costo, Descripcion)
       VALUES (?, ?, ?, ?, ?)
     ''',
-      [carroId, fecha, tipo, costo, descripcion],
+      [carroId, fechaRegistro, tipo, costo, descripcion],
     );
   }
-
-  // static List<Map<String, dynamic>> obtenerTodos() {
-  //   final result = DatabaseHelper().db.select('SELECT * FROM mantenimientos');
-  //   return result.map((row) => row.toMap()).toList();
-  // }
 
   static void eliminar(int id) {
     DatabaseHelper().db.execute('DELETE FROM mantenimientos WHERE id = ?', [
@@ -42,3 +37,5 @@ class MantenimientoDAO {
     ]);
   }
 }
+
+

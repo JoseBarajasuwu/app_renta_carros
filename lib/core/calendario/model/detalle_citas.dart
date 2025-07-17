@@ -10,6 +10,7 @@ class CitaCarro {
   final TimeOfDay? horaFinOcupacion;
   final double precioTotal;
   final double precioPagado;
+  final String observacion;
   CitaCarro({
     required this.carroID,
     required this.nombreCarro,
@@ -19,6 +20,7 @@ class CitaCarro {
     required this.fechaFin,
     required this.precioTotal,
     required this.precioPagado,
+    required this.observacion,
     this.horaFinOcupacion,
   });
 
@@ -45,6 +47,7 @@ class EstadoCarro {
   final String tipoPago;
   final DateTime fechaInicio;
   final DateTime fechaFin;
+  final String observacion;
   final TimeOfDay? horaFinOcupacion;
 
   EstadoCarro({
@@ -57,6 +60,7 @@ class EstadoCarro {
     required this.tipoPago,
     required this.fechaInicio,
     required this.fechaFin,
+    required this.observacion,
     this.horaFinOcupacion,
   });
 }

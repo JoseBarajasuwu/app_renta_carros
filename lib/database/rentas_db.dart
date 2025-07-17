@@ -130,7 +130,52 @@ class RentaDAO {
   //   return result.map((row) => row.toMap()).toList();
   // }
 
-  static void eliminar(int id) {
-    DatabaseHelper().db.execute('DELETE FROM rentas WHERE id = ?', [id]);
-  }
+
+// Modelos
+
+
+
+// Future<List<Car>> fetchCarData(String month) async {
+//   // Totales por carro
+//   final resumenRows =  DatabaseHelper().db.select('''
+//     SELECT 
+//       C.CarroID AS id,
+//       C.Modelo AS model,
+//       IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
+//       IFNULL(SUM(M.Costo), 0) AS totalServicios
+//     FROM Carro C
+//     LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
+//     LEFT JOIN Mantenimiento M ON C.CarroID = M.CarroID AND substr(M.FechaRegistro,1,7)=?
+//     GROUP BY C.CarroID, C.Modelo;
+//   ''', [month, month]);
+
+//   // Servicios detallados
+//   final serviciosRows = DatabaseHelper().db.select('''
+//     SELECT CarroID AS id, TipoServicio AS name, Costo AS cost
+//     FROM Mantenimiento
+//     WHERE substr(FechaRegistro,1,7)=?
+//     ORDER BY CarroID, FechaRegistro;
+//   ''', [month]);
+
+//   // Mapear lista de servicios
+//   final Map<int, List<Service>> serviciosMap = {};
+//   for (var row in serviciosRows) {
+//     final int id = row['id'] as int;
+//     serviciosMap.putIfAbsent(id, () => [])
+//       .add(Service(row['name'] as String, (row['cost'] as num).toDouble()));
+//   }
+
+//   // Construir modelos
+//   return resumenRows.map((row) {
+//     final int id = row['id'] as int;
+//     return Car(
+//       carroID: id,
+//       model: row['model'] as String,
+//       totalRenta: (row['totalRenta'] as num).toDouble(),
+//       totalServicios: (row['totalServicios'] as num).toDouble(),
+//       services: serviciosMap[id] ?? [],
+//     );
+//   }).toList();
+// }
+
 }

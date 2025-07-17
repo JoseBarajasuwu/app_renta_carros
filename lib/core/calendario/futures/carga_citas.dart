@@ -43,6 +43,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           tipoPago: row['TipoPago'] ?? '',
           fechaInicio: inicio,
           fechaFin: fin,
+          observacion: row['Observaciones'] ?? '',
           horaFinOcupacion: TimeOfDay(hour: fin.hour, minute: fin.minute),
         ),
       );
@@ -77,6 +78,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           tipoPago: citaActiva.tipoPago,
           fechaInicio: citaActiva.fechaInicio,
           fechaFin: citaActiva.fechaFin,
+          observacion: citaActiva.observacion,
           horaFinOcupacion: citaActiva.horaFinOcupacion,
         ),
       );
@@ -92,6 +94,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           tipoPago: '',
           fechaInicio: dia,
           fechaFin: dia,
+          observacion: '',
           horaFinOcupacion: null,
         ),
       );

@@ -71,7 +71,7 @@ final ThemeData appTheme = ThemeData(
   //   foregroundColor: Colors.white,
   // ),
   colorScheme: ColorScheme.fromSeed(
-    seedColor: Colors.amber, // Cambia esto al color base que quieras
+    seedColor: Colors.blueAccent, // Cambia esto al color base que quieras
     surface: Colors.white, // Fondo de los componentes como BottomNavigationBar
   ),
 );
