@@ -12,18 +12,6 @@ class _CalendarioPageState extends State<CalendarioPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Simulamos los días que tienen datos (carros reservados o disponibles)
-  // final Map<DateTime, List<String>> _diasConDatos = {
-  //   DateTime.utc(2025, 7, 2): ['Camioneta A', 'Sedán B'],
-  //   DateTime.utc(2025, 7, 3): ['SUV X'],
-  //   DateTime.utc(2025, 7, 5): ['PickUp Z', 'Hatchback Y'],
-  // };
-
-  // List<String> _getEventosDelDia(DateTime day) {
-  //   final fecha = DateTime.utc(day.year, day.month, day.day);
-  //   return _diasConDatos[fecha] ?? [];
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

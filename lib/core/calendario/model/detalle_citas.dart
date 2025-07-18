@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class CitaCarro {
   final int carroID;
+  final String nombreCliente;
   final String nombreCarro;
   final int pagoMitad;
   final String tipoPago;
@@ -13,6 +14,7 @@ class CitaCarro {
   final String observacion;
   CitaCarro({
     required this.carroID,
+    required this.nombreCliente,
     required this.nombreCarro,
     required this.fechaInicio,
     required this.pagoMitad,
@@ -39,6 +41,7 @@ class CitaCarro {
 
 class EstadoCarro {
   final int carroID;
+  final String nombreCliente;
   final String nombreCarro;
   final bool ocupado;
   final double precioTotal;
@@ -52,6 +55,7 @@ class EstadoCarro {
 
   EstadoCarro({
     required this.carroID,
+    required this.nombreCliente,
     required this.nombreCarro,
     required this.ocupado,
     required this.precioTotal,

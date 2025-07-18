@@ -72,15 +72,18 @@ class RentaDAO {
         '''
       SELECT
         c.CarroID,
+        cl.Nombre || cl.Apellido AS NombreCompleto,
         c.NombreCarro,
         r.FechaInicio,
         r.FechaFin,
         r.PrecioTotal,
         r.PrecioPagado,
         r.TipoPago
-      FROM Carro c
-      LEFT JOIN Renta r
-        ON c.CarroID = r.CarroID
+      FROM
+        Carro c
+      LEFT JOIN
+        Renta r ON c.CarroID = r.CarroID
+      LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
         AND DATE(?) BETWEEN DATE(r.FechaInicio) AND DATE(r.FechaFin)
       ''',
         [fecha],
@@ -90,6 +93,7 @@ class RentaDAO {
           .map(
             (row) => {
               'CarroID': row['CarroID'],
+              'NombreCompleto': row['NombreCompleto'], 
               'NombreCarro': row['NombreCarro'],
               'FechaInicio': row['FechaInicio'],
               'FechaFin': row['FechaFin'],

@@ -41,13 +41,19 @@ Future<void> exportToExcelWithSummaryAtEnd(
     final totalServicios = car.services.fold(0.0, (sum, s) => sum + s.cost);
     final gananciaNeta = car.totalRenta - totalServicios;
 
-    final modelCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row));
+    final modelCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+    );
     modelCell.value = excel2.TextCellValue(car.model);
     modelCell.cellStyle = boldBorderedCellStyle;
     row++;
 
-    final labelRentaCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row));
-    final valueRentaCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row));
+    final labelRentaCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+    );
+    final valueRentaCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+    );
     labelRentaCell.value = excel2.TextCellValue('Renta');
     labelRentaCell.cellStyle = borderedCellStyle;
     valueRentaCell.value = excel2.DoubleCellValue(car.totalRenta);
@@ -55,8 +61,12 @@ Future<void> exportToExcelWithSummaryAtEnd(
     row++;
 
     for (var service in car.services) {
-      final serviceNameCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row));
-      final serviceCostCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row));
+      final serviceNameCell = sheet.cell(
+        excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      );
+      final serviceCostCell = sheet.cell(
+        excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+      );
       serviceNameCell.value = excel2.TextCellValue(service.name);
       serviceNameCell.cellStyle = borderedCellStyle;
       serviceCostCell.value = excel2.DoubleCellValue(service.cost);
@@ -64,16 +74,24 @@ Future<void> exportToExcelWithSummaryAtEnd(
       row++;
     }
 
-    final totalLabelCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row));
-    final totalValueCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row));
+    final totalLabelCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+    );
+    final totalValueCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+    );
     totalLabelCell.value = excel2.TextCellValue('Total Servicios');
     totalLabelCell.cellStyle = borderedCellStyle;
     totalValueCell.value = excel2.DoubleCellValue(totalServicios);
     totalValueCell.cellStyle = borderedCellStyle;
     row++;
 
-    final gananciaLabelCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row));
-    final gananciaValueCell = sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row));
+    final gananciaLabelCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+    );
+    final gananciaValueCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+    );
     gananciaLabelCell.value = excel2.TextCellValue('Ganancia Neta');
     gananciaLabelCell.cellStyle = borderedCellStyle;
     gananciaValueCell.value = excel2.DoubleCellValue(gananciaNeta);
@@ -86,10 +104,13 @@ Future<void> exportToExcelWithSummaryAtEnd(
   final bytes = excel.encode();
   final file = File(filePath);
   await file.writeAsBytes(bytes!);
-  if(context.mounted){
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('📁 Archivo guardado automáticamente en:\n$filePath')),
-  );
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Color(0xFF204c6c),
+        content: Text('📁 Archivo guardado automáticamente en:\n$filePath'),
+      ),
+    );
   }
 }
 

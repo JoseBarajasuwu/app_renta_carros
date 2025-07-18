@@ -5,9 +5,8 @@ import 'package:renta_carros/core/historial/model/historial_model.dart';
 import 'package:renta_carros/core/utils/formateo_miles_text.dart';
 import 'package:renta_carros/database/database.dart';
 import 'package:renta_carros/database/mantenimientos_db.dart';
+import 'package:renta_carros/presentation/historial/utils_historial.dart';
 import 'package:renta_carros/presentation/historial/widgets/info_rows.dart';
-
-
 
 class HistorialPage extends StatefulWidget {
   const HistorialPage({super.key});
@@ -25,12 +24,13 @@ class _HistorialPageState extends State<HistorialPage> {
   TextEditingController tipoController = TextEditingController();
   TextEditingController costoController = TextEditingController();
   TextEditingController descripcionController = TextEditingController();
-
+  String fechaDeHoy = "";
   @override
   void initState() {
     super.initState();
     final hoy = DateTime.now();
     final mes = DateFormat('yyyy-MM').format(hoy);
+    fechaDeHoy = mes;
     _futureCars = fetchCarData(mes);
   }
 
@@ -111,8 +111,21 @@ class _HistorialPageState extends State<HistorialPage> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Fecha del historial: $fechaDeHoy", style: TextStyle(fontFamily: 'Quicksand')),
+                    ElevatedButton(
+                      onPressed: () {
+                        exportToExcelWithSummaryAtEnd(cars, context);
+                      },
+                      child: Text("Exportar a Excel"),
+                    ),
+                  ],
+                ),
                 Card(
                   color: const Color(0xFFbcc9d3),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -135,7 +148,7 @@ class _HistorialPageState extends State<HistorialPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+
                 Expanded(
                   child: ListView.builder(
                     itemCount: cars.length,
@@ -317,14 +330,6 @@ class _HistorialPageState extends State<HistorialPage> {
                                             final fecha = DateFormat(
                                               'yyyy-MM-dd',
                                             ).format(DateTime.now());
-
-                                            //  DatabaseHelper().insert('Mantenimiento', {
-                                            //   'CarroID': car.carroID,
-                                            //   'FechaRegistro': fecha,
-                                            //   'TipoServicio': tipo,
-                                            //   'Costo': costo,
-                                            //   'Descripcion': descripcion,
-                                            // });
                                             MantenimientoDAO.insertar(
                                               carroId: car.carroID,
                                               fechaRegistro: fecha,
