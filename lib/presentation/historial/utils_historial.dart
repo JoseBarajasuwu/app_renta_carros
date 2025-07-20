@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:excel/excel.dart' as excel2;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:renta_carros/core/historial/model/historial_model.dart';
@@ -104,6 +105,7 @@ Future<void> exportToExcelWithSummaryAtEnd(
   final bytes = excel.encode();
   final file = File(filePath);
   await file.writeAsBytes(bytes!);
+  await OpenFile.open(filePath);
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

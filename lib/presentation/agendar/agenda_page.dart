@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:renta_carros/core/calendario/metods/detalle_citas_metods.dart';
 import 'package:renta_carros/core/utils/formateo_miles_text.dart';
+import 'package:renta_carros/database/carros_db.dart';
 import 'package:renta_carros/database/clientes_db.dart';
 import 'package:renta_carros/database/rentas_db.dart';
 
@@ -33,68 +34,86 @@ class _AgendarPageState extends State<AgendarPage> {
   bool estaVacioAnticipo = true;
   bool estaVacioCosto = true;
   Timer? _debounce;
-  List<String> clientes = [
-    'Juan Pérez',
-    'María Gómez',
-    'Carlos López',
-    'Ana Torres',
-    'Luis Hernández',
-    'Luis Hernández',
-  ];
-  List<Map<String, dynamic>> lUsuarios = [];
-  DateTime? fechaHoraInicio;
-  DateTime? fechaHoraFin;
+  bool mostrarSoloEditar = false;
 
+  List<Map<String, dynamic>> lUsuarios = [];
+  List<Map<String, dynamic>> lPrecio = [];
+  String? fechaHoraInicio;
+  String? fechaHoraFin;
+  DateTimeRange? _selectedDateRange;
   final formKey = GlobalKey<FormState>();
+  final List<DateTime> diasNoDisponibles = [
+    DateTime(2025, 12, 25),
+    DateTime(2025, 1, 1),
+  ];
 
   final DateFormat formatoFechaHora = DateFormat('yyyy-MM-dd HH:mm');
-
-  Future<DateTime?> _selectDateTime(
-    BuildContext context,
-    DateTime? initialDate,
-  ) async {
-    final fecha = await showDatePicker(
+  Future<void> _selectDateTimeRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(2025),
+      cancelText: "Cancelar",
+      errorFormatText: "Formato invalido",
+      fieldStartLabelText: "Fecha inicio",
+      fieldEndLabelText: "Fecha final",
+      confirmText: "Aceptar",
+      saveText: "Guardar",
+
+      lastDate: DateTime(2026),
+      initialDateRange: _selectedDateRange,
     );
-    if (fecha == null) return null;
-    final hora = await showTimePicker(
 
-      context: context,
-      initialTime:
-          initialDate != null
-              ? TimeOfDay(hour: initialDate.hour, minute: initialDate.minute)
-              : TimeOfDay.now(),
-    );
-    if (hora == null) return null;
+    if (picked != null) {
+      final TimeOfDay? startHour = await showTimePicker(
+        initialEntryMode: TimePickerEntryMode.input,
+        cancelText: "Cancelar",
+        confirmText: "Aceptar",
+        hourLabelText: "Hora",
+        minuteLabelText: "Minuto",
+        helpText: "Hora incio",
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
 
-    return DateTime(fecha.year, fecha.month, fecha.day, hora.hour, hora.minute);
-  }
+      if (startHour == null) return;
 
-  Future<void> _seleccionarFechaHoraInicio(BuildContext context) async {
-    final seleccionado = await _selectDateTime(context, fechaHoraInicio);
-    if (seleccionado != null) {
+      final TimeOfDay? endHour = await showTimePicker(
+        cancelText: "Cancelar",
+        confirmText: "Aceptar",
+        hourLabelText: "Hora",
+        minuteLabelText: "Minuto",
+        helpText: "Hora final",
+
+        initialEntryMode: TimePickerEntryMode.input,
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (endHour == null) return;
+
+      final startDateTime = DateTime(
+        picked.start.year,
+        picked.start.month,
+        picked.start.day,
+        startHour.hour,
+        startHour.minute,
+      );
+
+      final endDateTime = DateTime(
+        picked.end.year,
+        picked.end.month,
+        picked.end.day,
+        endHour.hour,
+        endHour.minute,
+      );
+
       setState(() {
-        fechaHoraInicio = seleccionado;
-        // Si fechaHoraFin es anterior a inicio, la igualamos
-        if (fechaHoraFin != null && fechaHoraFin!.isBefore(fechaHoraInicio!)) {
-          fechaHoraFin = fechaHoraInicio;
-        }
-      });
-    }
-  }
-
-  Future<void> _seleccionarFechaHoraFin(BuildContext context) async {
-    final seleccionado = await _selectDateTime(context, fechaHoraFin);
-    if (seleccionado != null) {
-      setState(() {
-        fechaHoraFin = seleccionado;
-        // Si fechaHoraFin es anterior a inicio, la igualamos
-        if (fechaHoraFin != null && fechaHoraFin!.isBefore(fechaHoraInicio!)) {
-          fechaHoraFin = fechaHoraInicio;
-        }
+        _selectedDateRange = DateTimeRange(
+          start: startDateTime,
+          end: endDateTime,
+        );
+        fechaHoraInicio = formatoFechaHora.format(startDateTime);
+        fechaHoraFin = formatoFechaHora.format(endDateTime);
       });
     }
   }
@@ -109,7 +128,7 @@ class _AgendarPageState extends State<AgendarPage> {
   }) {
     int iClienteID = int.tryParse(clienteID) ?? 0;
     String cPrecioTotal = precioTotal.replaceAll(',', '');
-    int iPrecioTotal = int.tryParse(cPrecioTotal) ?? 0;
+    double iPrecioTotal = double.tryParse(cPrecioTotal) ?? 0;
     String cPrecioPagado = precioPagado.replaceAll(',', '');
     double iPrecioPagado = double.tryParse(cPrecioPagado) ?? 0.0;
     RentaDAO.insertar(
@@ -122,18 +141,30 @@ class _AgendarPageState extends State<AgendarPage> {
       tipoPago: pagoMetodo,
       observaciones: observaciones,
     );
+    Navigator.pop(context, true);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Color(0xFF204c6c),
+          content: Text('Renta guardada exitosamente'),
+        ),
+      );
+    }
   }
 
-  bool isLoading = false;
   Future<void> cargarUsuarios() async {
-    setState(() => isLoading = true);
-
     final lista = ClienteDAO.obtenerClienteAgenda();
     setState(() {
       lUsuarios = lista;
       print(lUsuarios);
-      isLoading = false;
     });
+  }
+
+  Future<void> cargaPrecio() async {
+    final lista = CarroDAO.obtenerPrecioCarro(carroID: widget.carroID);
+    lPrecio = lista;
+    costoCtrl.text = lPrecio[0]["Costo"].toString();
+    print(lPrecio);
   }
 
   List<Map<String, dynamic>> get clientesFiltrados {
@@ -153,6 +184,7 @@ class _AgendarPageState extends State<AgendarPage> {
   @override
   void initState() {
     cargarUsuarios();
+    cargaPrecio();
     super.initState();
   }
 
@@ -167,14 +199,9 @@ class _AgendarPageState extends State<AgendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final coincidencias =
-    //     clientes
-    //         .where(
-    //           (c) => c.toLowerCase().contains(buscarCtrl.text.toLowerCase()),
-    //         )
-    //         .toList();
-    // final resultados = coincidencias.take(5).toList();
-
+    double resta =
+        (double.tryParse(costoCtrl.text.replaceAll(',', '')) ?? 0) -
+        (double.tryParse(anticipoCtrl.text.replaceAll(',', '')) ?? 0);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -257,37 +284,81 @@ class _AgendarPageState extends State<AgendarPage> {
                     ),
                   ),
                 const Divider(height: 30),
-                TextFormField(
-                  controller: costoCtrl,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(fontFamily: 'Quicksand'),
-                  decoration: InputDecoration(
-                    labelText: 'Costo del servicio',
-                    prefixIcon: Icon(
-                      Icons.attach_money,
-                      color: estaVacioCosto ? Colors.redAccent : Colors.green,
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: costoCtrl,
+                        enabled: mostrarSoloEditar,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(fontFamily: 'Quicksand'),
+                        decoration: InputDecoration(
+                          labelText: 'Costo del servicio',
+                          prefixIcon: Icon(
+                            Icons.attach_money,
+                            color:
+                                estaVacioCosto
+                                    ? Colors.redAccent
+                                    : Colors.green,
+                          ),
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                          ThousandsFormatter(),
+                        ],
+                        onChanged: (value) {
+                          String clean = value.replaceAll(',', '');
+                          setState(
+                            () =>
+                                estaVacioCosto = clean.isEmpty || clean == "0",
+                          );
+                        },
+                        validator: (value) {
+                          if (mostrarSoloEditar == false) {
+                            return null;
+                          } else {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Agrega un costo";
+                            }
+                            final double costo =
+                                double.tryParse(value.replaceAll(',', '')) ??
+                                0.0;
+                            if (costo <= 0) return "Agrega un costo válido";
+                            return null;
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6),
-                    ThousandsFormatter(),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SizedBox(
+                        height: 35,
+                        width: 35,
+                        child: IconButton(
+                          iconSize: 18,
+                          splashRadius: 14,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            Icons.add_circle_outline,
+                            color: const Color(0xFF204c6c),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              mostrarSoloEditar = !mostrarSoloEditar;
+                              if (mostrarSoloEditar == false) {
+                                estaVacioCosto = false;
+                              } else {
+                                estaVacioCosto = true;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ),
                   ],
-                  onChanged: (value) {
-                    String clean = value.replaceAll(',', '');
-                    setState(
-                      () => estaVacioCosto = clean.isEmpty || clean == "0",
-                    );
-                  },
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Agrega un costo";
-                    }
-                    final double costo =
-                        double.tryParse(value.replaceAll(',', '')) ?? 0.0;
-                    if (costo <= 0) return "Agrega un costo válido";
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -322,6 +393,16 @@ class _AgendarPageState extends State<AgendarPage> {
                     if (anticipo <= 0) return "Agrega un anticipo válido";
                     return null;
                   },
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Resta: $resta",
+                      style: TextStyle(fontFamily: 'Quicksand', fontSize: 16),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 DropdownButtonFormField<String>(
@@ -388,21 +469,39 @@ class _AgendarPageState extends State<AgendarPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _buildFechaHoraSelector(
-                    label: 'Fecha y hora de inicio',
-                    fecha: fechaHoraInicio,
-                    onTap: () => _seleccionarFechaHoraInicio(context),
+                // Padding(
+                //   padding: const EdgeInsets.only(bottom: 16),
+                //   child: _buildFechaHoraSelector(
+                //     label: 'Fecha y hora de inicio',
+                //     fecha: fechaHoraInicio,
+                //     onTap: () => _selectDateTimeRange(context),
+                //   ),
+                // ),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ElevatedButton(
+                    onPressed: () => _selectDateTimeRange(context),
+                    child: Text(
+                      'Seleccionar Rango de Fecha y Hora',
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                    ),
                   ),
                 ),
-                _buildFechaHoraSelector(
-                  label: 'Fecha y hora final',
-                  fecha: fechaHoraFin,
-                  onTap: () => _seleccionarFechaHoraFin(context),
-                ),
+                if (_selectedDateRange != null)
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      'Inicio: $fechaHoraInicio\nFin: $fechaHoraFin',
+                      style: TextStyle(fontFamily: 'Quicksand', fontSize: 16),
+                    ),
+                  ),
 
-                fechaHoraInicio == null || fechaHoraFin == null
+                // _buildFechaHoraSelector(
+                //   label: 'Fecha y hora final',
+                //   fecha: fechaHoraFin,
+                //   onTap: () => _selectDateTimeRange(context),
+                // ),
+                _selectedDateRange == null
                     ? Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -473,63 +572,6 @@ class _AgendarPageState extends State<AgendarPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFechaHoraSelector({
-    required String label,
-    required DateTime? fecha,
-    required VoidCallback onTap,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-            fontFamily: 'Quicksand',
-          ),
-        ),
-        const SizedBox(height: 6),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade400),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_today, color: Colors.blueGrey),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      fecha != null
-                          ? DateFormat('yyyy-MM-dd HH:mm').format(fecha)
-                          : 'Selecciona...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color:
-                            fecha != null ? Colors.black : Colors.grey.shade600,
-                        fontFamily: 'Quicksand',
-                      ),
-                    ),
-                  ),
-                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

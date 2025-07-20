@@ -9,7 +9,7 @@ void importRentasTabla() {
       FechaInicio TEXT NOT NULL,
       FechaFin TEXT NOT NULL,
       PrecioTotal REAL NOT NULL,
-      PrecioPagado INTEGER NOT NULL,
+      PrecioPagado REAL NOT NULL,
       TipoPago TEXT,
       Observaciones TEXT,
       FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID),
@@ -19,29 +19,12 @@ void importRentasTabla() {
 }
 
 class RentaDAO {
-  // static void insertar(
-  //   int clienteId,
-  //   int carroId,
-  //   String inicio,
-  //   String fin,
-  //   double total,
-  //   String? obs,
-  // ) {
-  //   DatabaseHelper().db.execute(
-  //     '''
-  //     INSERT INTO rentas (cliente_id, carro_id, fecha_inicio, fecha_fin, precio_total, observaciones)
-  //     VALUES (?, ?, ?, ?, ?, ?)
-  //   ''',
-  //     [clienteId, carroId, inicio, fin, total, obs],
-  //   );
-  // }
-
   static void insertar({
     required clienteID,
     required int carroID,
     required String fechaInicio,
     required String fechaFin,
-    required int precioTotal,
+    required double precioTotal,
     required double precioPagado,
     required String tipoPago,
     required String observaciones,
@@ -72,7 +55,7 @@ class RentaDAO {
         '''
       SELECT
         c.CarroID,
-        cl.Nombre || cl.Apellido AS NombreCompleto,
+        cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
         c.NombreCarro,
         r.FechaInicio,
         r.FechaFin,
@@ -93,7 +76,7 @@ class RentaDAO {
           .map(
             (row) => {
               'CarroID': row['CarroID'],
-              'NombreCompleto': row['NombreCompleto'], 
+              'NombreCompleto': row['NombreCompleto'],
               'NombreCarro': row['NombreCarro'],
               'FechaInicio': row['FechaInicio'],
               'FechaFin': row['FechaFin'],
@@ -106,6 +89,41 @@ class RentaDAO {
     });
   }
 
+  Future<List<Map<String, dynamic>>> obtenerHistorialRenta({
+    required String month,
+    required int carroID,
+  }) async {
+    final result = DatabaseHelper().db.select(
+      '''
+      SELECT 
+        r.FechaInicio,
+        r.FechaFin,
+        r.PrecioTotal,
+        r.PrecioPagado,
+        r.TipoPago,
+        r.Observaciones
+      FROM Carro c
+      LEFT JOIN Renta r ON c.CarroID = r.CarroID AND substr(r.FechaInicio,1,7)=?
+      WHERE r.CarroID = ?
+      GROUP BY c.CarroID, c.NombreCarro;
+      ''',
+      [month, carroID],
+    );
+    return result
+        .map(
+          (row) => {
+            'CarroID': row['CarroID'],
+            'NombreCompleto': row['NombreCompleto'],
+            'NombreCarro': row['NombreCarro'],
+            'FechaInicio': row['FechaInicio'],
+            'FechaFin': row['FechaFin'],
+            'PrecioTotal': row['PrecioTotal'],
+            'PrecioPagado': row['PrecioPagado'],
+            'TipoPago': row['TipoPago'],
+          },
+        )
+        .toList();
+  }
   // static List<Map<String, dynamic>> obtenerTodas() {
   //   final result = DatabaseHelper().db.select('SELECT * FROM rentas');
   //   return result.map((row) => row.toMap()).toList();
@@ -134,52 +152,48 @@ class RentaDAO {
   //   return result.map((row) => row.toMap()).toList();
   // }
 
+  // Modelos
 
-// Modelos
+  // Future<List<Car>> fetchCarData(String month) async {
+  //   // Totales por carro
+  //   final resumenRows =  DatabaseHelper().db.select('''
+  //     SELECT
+  //       C.CarroID AS id,
+  //       C.Modelo AS model,
+  //       IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
+  //       IFNULL(SUM(M.Costo), 0) AS totalServicios
+  //     FROM Carro C
+  //     LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
+  //     LEFT JOIN Mantenimiento M ON C.CarroID = M.CarroID AND substr(M.FechaRegistro,1,7)=?
+  //     GROUP BY C.CarroID, C.Modelo;
+  //   ''', [month, month]);
 
+  //   // Servicios detallados
+  //   final serviciosRows = DatabaseHelper().db.select('''
+  //     SELECT CarroID AS id, TipoServicio AS name, Costo AS cost
+  //     FROM Mantenimiento
+  //     WHERE substr(FechaRegistro,1,7)=?
+  //     ORDER BY CarroID, FechaRegistro;
+  //   ''', [month]);
 
+  //   // Mapear lista de servicios
+  //   final Map<int, List<Service>> serviciosMap = {};
+  //   for (var row in serviciosRows) {
+  //     final int id = row['id'] as int;
+  //     serviciosMap.putIfAbsent(id, () => [])
+  //       .add(Service(row['name'] as String, (row['cost'] as num).toDouble()));
+  //   }
 
-// Future<List<Car>> fetchCarData(String month) async {
-//   // Totales por carro
-//   final resumenRows =  DatabaseHelper().db.select('''
-//     SELECT 
-//       C.CarroID AS id,
-//       C.Modelo AS model,
-//       IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
-//       IFNULL(SUM(M.Costo), 0) AS totalServicios
-//     FROM Carro C
-//     LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
-//     LEFT JOIN Mantenimiento M ON C.CarroID = M.CarroID AND substr(M.FechaRegistro,1,7)=?
-//     GROUP BY C.CarroID, C.Modelo;
-//   ''', [month, month]);
-
-//   // Servicios detallados
-//   final serviciosRows = DatabaseHelper().db.select('''
-//     SELECT CarroID AS id, TipoServicio AS name, Costo AS cost
-//     FROM Mantenimiento
-//     WHERE substr(FechaRegistro,1,7)=?
-//     ORDER BY CarroID, FechaRegistro;
-//   ''', [month]);
-
-//   // Mapear lista de servicios
-//   final Map<int, List<Service>> serviciosMap = {};
-//   for (var row in serviciosRows) {
-//     final int id = row['id'] as int;
-//     serviciosMap.putIfAbsent(id, () => [])
-//       .add(Service(row['name'] as String, (row['cost'] as num).toDouble()));
-//   }
-
-//   // Construir modelos
-//   return resumenRows.map((row) {
-//     final int id = row['id'] as int;
-//     return Car(
-//       carroID: id,
-//       model: row['model'] as String,
-//       totalRenta: (row['totalRenta'] as num).toDouble(),
-//       totalServicios: (row['totalServicios'] as num).toDouble(),
-//       services: serviciosMap[id] ?? [],
-//     );
-//   }).toList();
-// }
-
+  //   // Construir modelos
+  //   return resumenRows.map((row) {
+  //     final int id = row['id'] as int;
+  //     return Car(
+  //       carroID: id,
+  //       model: row['model'] as String,
+  //       totalRenta: (row['totalRenta'] as num).toDouble(),
+  //       totalServicios: (row['totalServicios'] as num).toDouble(),
+  //       services: serviciosMap[id] ?? [],
+  //     );
+  //   }).toList();
+  // }
 }

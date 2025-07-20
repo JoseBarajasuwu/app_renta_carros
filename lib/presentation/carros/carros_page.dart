@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:renta_carros/core/utils/formateo_miles_text.dart';
 import 'package:renta_carros/core/utils/upper_case.dart';
 import 'package:renta_carros/database/carros_db.dart';
+import 'package:renta_carros/presentation/carros/historial_carro.dart';
 
 class VehiculosPage extends StatefulWidget {
   const VehiculosPage({super.key});
@@ -13,10 +15,11 @@ class VehiculosPage extends StatefulWidget {
 class _VehiculosPageState extends State<VehiculosPage> {
   List<Map<String, dynamic>> lVehiculos = [];
 
-  final TextEditingController nombreController = TextEditingController();
-  final TextEditingController placasController = TextEditingController();
-  final TextEditingController anioController = TextEditingController();
-  final TextEditingController buscarController = TextEditingController();
+  TextEditingController nombreController = TextEditingController();
+  TextEditingController placasController = TextEditingController();
+  TextEditingController anioController = TextEditingController();
+  TextEditingController costoController = TextEditingController();
+  TextEditingController buscarController = TextEditingController();
 
   int? indexEditando;
   final formCarro = GlobalKey<FormState>();
@@ -34,25 +37,34 @@ class _VehiculosPageState extends State<VehiculosPage> {
     String nombre = nombreController.text.trim();
     String placas = placasController.text.trim();
     int? anio = int.tryParse(anioController.text.trim()) ?? 0;
+    double costo =
+        double.tryParse(costoController.text.replaceAll(',', '')) ?? 0.0;
 
-    if (nombre.isEmpty || placas.isEmpty || anio == 0) return;
+    if (nombre.isEmpty || placas.isEmpty || anio == 0 || costo == 0) return;
     setState(() {
       isLoading = true;
     });
     if (indexEditando == null) {
-      CarroDAO.insertar(nombreCarro: nombre, anio: anio, placas: placas);
+      CarroDAO.insertar(
+        nombreCarro: nombre,
+        anio: anio,
+        placas: placas,
+        costo: costo,
+      );
     } else {
       CarroDAO.actualizar(
         carroID: indexEditando!,
         nombreCarro: nombre,
         anio: anio,
         placas: placas,
+        costo: costo,
       );
       indexEditando = null;
     }
     nombreController.clear();
     placasController.clear();
     anioController.clear();
+    costoController.clear();
     await cargaCarros();
   }
 
@@ -61,6 +73,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     required String nombreCarro,
     required String placa,
     required String anio,
+    required double costo,
   }) {
     setState(() {
       indexEditando = carroID;
@@ -68,6 +81,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     nombreController.text = nombreCarro;
     placasController.text = placa;
     anioController.text = anio;
+    costoController.text = costo.toString();
   }
 
   void eliminarVehiculo(int index) async {
@@ -76,6 +90,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
       nombreController.clear();
       placasController.clear();
       anioController.clear();
+      costoController.clear();
       setState(() {
         indexEditando = null;
       });
@@ -110,6 +125,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     nombreController.dispose();
     placasController.dispose();
     anioController.dispose();
+    costoController.dispose();
     buscarController.dispose();
     super.dispose();
   }
@@ -167,9 +183,26 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                                 .toString();
                                         String placa =
                                             vehiculosFiltrados[index]["Placas"];
+                                        double costo =
+                                            vehiculosFiltrados[index]["Costo"];
                                         return Column(
                                           children: [
                                             ListTile(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (
+                                                          _,
+                                                        ) => HistorialCarroPage(
+                                                          carroID: carroID,
+                                                          nombreCarro:
+                                                              "$nombreCarro $anio, $placa ",
+                                                        ),
+                                                  ),
+                                                );
+                                              },
                                               titleTextStyle: const TextStyle(
                                                 fontSize: 18,
                                                 fontFamily: 'Quicksand',
@@ -191,6 +224,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                                     softWrap: true,
                                                   ),
                                                   Text(anio),
+                                                  Text(costo.toString()),
                                                 ],
                                               ),
 
@@ -210,6 +244,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                                               nombreCarro,
                                                           placa: placa,
                                                           anio: anio,
+                                                          costo: costo,
                                                         ),
                                                   ),
                                                   IconButton(
@@ -318,7 +353,6 @@ class _VehiculosPageState extends State<VehiculosPage> {
                               },
                             ),
                             const SizedBox(height: 20),
-
                             TextFormField(
                               controller: placasController,
                               style: TextStyle(fontFamily: 'Quicksand'),
@@ -336,8 +370,35 @@ class _VehiculosPageState extends State<VehiculosPage> {
 
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return "Agrega un sobrenombre para el vehículo";
+                                  return "Agrega las placas del vehiculo";
                                 }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: costoController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(fontFamily: 'Quicksand'),
+                              decoration: InputDecoration(
+                                labelText: 'Costo del servicio',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(6),
+                                ThousandsFormatter(),
+                              ],
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Agrega un costo";
+                                }
+                                double costo =
+                                    double.tryParse(
+                                      value.replaceAll(',', ''),
+                                    ) ??
+                                    0.0;
+                                if (costo <= 0) return "Agrega un costo válido";
                                 return null;
                               },
                             ),

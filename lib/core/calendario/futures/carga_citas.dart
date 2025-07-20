@@ -41,6 +41,9 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
                       (double.tryParse(row['PrecioTotal'].toString()) ?? 0) / 2
                   ? 1
                   : 0,
+          resto:
+              (double.tryParse(row['PrecioTotal'].toString()) ?? 0) -
+              (double.tryParse(row['PrecioPagado'].toString()) ?? 0),
           tipoPago: row['TipoPago'] ?? '',
           fechaInicio: inicio,
           fechaFin: fin,
@@ -77,6 +80,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           precioPagado: citaActiva.precioPagado,
           precioTotal: citaActiva.precioTotal,
           pagoMitad: citaActiva.pagoMitad,
+          resto: citaActiva.resto,
           tipoPago: citaActiva.tipoPago,
           fechaInicio: citaActiva.fechaInicio,
           fechaFin: citaActiva.fechaFin,
@@ -94,6 +98,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           precioPagado: 0,
           precioTotal: 0,
           pagoMitad: 0,
+          resto: 0,
           tipoPago: '',
           fechaInicio: dia,
           fechaFin: dia,

@@ -91,7 +91,6 @@ class _HistorialPageState extends State<HistorialPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Historial de Rentas")),
       body: FutureBuilder<List<Car>>(
         future: _futureCars,
         builder: (context, snapshot) {
@@ -114,7 +113,10 @@ class _HistorialPageState extends State<HistorialPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Fecha del historial: $fechaDeHoy", style: TextStyle(fontFamily: 'Quicksand')),
+                    Text(
+                      "Fecha del historial: $fechaDeHoy",
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                    ),
                     ElevatedButton(
                       onPressed: () {
                         exportToExcelWithSummaryAtEnd(cars, context);

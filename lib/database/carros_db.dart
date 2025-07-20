@@ -7,7 +7,7 @@ void importCarrosTabla() {
       NombreCarro TEXT NOT NULL,
       Anio INTEGER NOT NULL,
       Placas TEXT NOT NULL,
-      Estado INTEGER
+      Costo REAL NOT NULL
     );
   ''');
 }
@@ -17,10 +17,11 @@ class CarroDAO {
     required String nombreCarro,
     required int anio,
     required String placas,
+    required double costo,
   }) {
     DatabaseHelper().db.execute(
-      'INSERT INTO Carro (NombreCarro, Anio, Placas) VALUES (?, ?, ?)',
-      [nombreCarro, anio, placas],
+      'INSERT INTO Carro (NombreCarro, Anio, Placas, Costo) VALUES (?, ?, ?, ?)',
+      [nombreCarro, anio, placas, costo],
     );
   }
 
@@ -30,7 +31,8 @@ class CarroDAO {
       CarroID,
       NombreCarro,
       Anio,
-      Placas
+      Placas,
+      Costo
      FROM Carro
 ''');
     // Construir lista de mapas
@@ -40,7 +42,24 @@ class CarroDAO {
         'NombreCarro': row['NombreCarro'],
         'Anio': row['Anio'],
         'Placas': row['Placas'],
+        'Costo': row['Costo'],
       };
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>> obtenerPrecioCarro({required int carroID}) {
+    final result = DatabaseHelper().db.select(
+      '''
+    SELECT
+      Costo
+     FROM Carro
+     WHERE
+      CarroID = ?
+    ''',
+      [carroID],
+    );
+    return result.map((row) {
+      return {'Costo': row['Costo']};
     }).toList();
   }
 
@@ -49,10 +68,11 @@ class CarroDAO {
     required String nombreCarro,
     required int anio,
     required String placas,
+    required double costo,
   }) {
     DatabaseHelper().db.execute(
-      'UPDATE Carro SET NombreCarro = ?, Anio = ?, Placas = ? WHERE CarroID = ?',
-      [nombreCarro, anio, placas, carroID],
+      'UPDATE Carro SET NombreCarro = ?, Anio = ?, Placas = ?, Costo = ? WHERE CarroID = ?',
+      [nombreCarro, anio, placas, costo, carroID],
     );
   }
 

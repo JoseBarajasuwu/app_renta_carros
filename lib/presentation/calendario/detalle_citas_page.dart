@@ -66,7 +66,17 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                 List<EstadoCarro> estados = snapshot.data ?? [];
 
                 if (_mostrarSoloDisponibles) {
-                  estados = estados.where((e) => !e.ocupado).toList();
+                  estados =
+                      estados.where((e) {
+                        if (!e.ocupado) return true;
+
+                        final fechaFinEsHoy =
+                            e.fechaFin.year == widget.fecha.year &&
+                            e.fechaFin.month == widget.fecha.month &&
+                            e.fechaFin.day == widget.fecha.day;
+
+                        return fechaFinEsHoy;
+                      }).toList();
                 }
 
                 if (estados.isEmpty) {
@@ -140,10 +150,23 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    estado.nombreCliente,
-                                    style: const TextStyle(
-                                      fontFamily: 'Quicksand',
+                                  RichText(
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontFamily: 'Quicksand',
+                                      ),
+                                      children: [
+                                        const TextSpan(
+                                          text: "Total: ",
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        TextSpan(
+                                          text: '\$${estado.precioTotal}',
+                                          style: const TextStyle(
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   RichText(
@@ -153,11 +176,30 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                       ),
                                       children: [
                                         const TextSpan(
-                                          text: "Pagado: ",
+                                          text: "Anticipo: ",
                                           style: TextStyle(color: Colors.black),
                                         ),
                                         TextSpan(
                                           text: '\$${estado.precioPagado}',
+                                          style: const TextStyle(
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  RichText(
+                                    text: TextSpan(
+                                      style: const TextStyle(
+                                        fontFamily: 'Quicksand',
+                                      ),
+                                      children: [
+                                        const TextSpan(
+                                          text: "Resto: ",
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                        TextSpan(
+                                          text: '\$${estado.resto}',
                                           style: const TextStyle(
                                             color: Colors.green,
                                           ),
@@ -187,7 +229,9 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                     ],
                                   ),
                                   Text(
-                                    estado.observacion,
+                                    estado.observacion.isEmpty
+                                        ? "No hubo observación"
+                                        : estado.observacion,
                                     style: const TextStyle(
                                       fontFamily: 'Quicksand',
                                     ),
@@ -199,8 +243,8 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                         trailing:
                             agendarPosible
                                 ? ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
+                                  onPressed: () async {
+                                    final resultado = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder:
@@ -211,6 +255,12 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                             ),
                                       ),
                                     );
+                                    if (resultado != null) {
+                                      setState(() {
+                                        _mostrarSoloDisponibles = true;
+                                      });
+                                    }
+                                    // Esto se ejecuta después de que AgendarPage se cierra
                                   },
                                   child: const Text(
                                     'Agendar',
