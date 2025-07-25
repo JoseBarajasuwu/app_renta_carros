@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:renta_carros/core/calendario/futures/carga_citas.dart';
 import 'package:renta_carros/core/calendario/metods/detalle_citas_metods.dart';
 import 'package:renta_carros/core/calendario/model/detalle_citas.dart';
+import 'package:renta_carros/database/rentas_db.dart';
 import 'package:renta_carros/presentation/agendar/agenda_page.dart';
 
 class DetalleCitasPage extends StatefulWidget {
@@ -16,7 +17,20 @@ class DetalleCitasPage extends StatefulWidget {
 
 class _DetalleCitasPageState extends State<DetalleCitasPage> {
   bool _mostrarSoloDisponibles = true;
-
+  eliminarCita(int index) async {
+    print(index);
+    // setState(() => isLoading = true);
+    // if (index == indexEditando) {
+    //   nombreController.clear();
+    //   apellidoController.clear();
+    //   celularController.clear();
+    //   setState(() {
+    //     indexEditando = null;
+    //   });
+    // }
+    // RentaDAO.eliminar(rentaID: index);
+    // await cargarUsuarios();
+  }
   @override
   Widget build(BuildContext context) {
     final fechaFormateada =
@@ -135,9 +149,44 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                               : Icons.directions_car,
                           color: iconoColor,
                         ),
-                        title: Text(
-                          estado.nombreCarro,
-                          style: const TextStyle(fontFamily: 'Quicksand'),
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              estado.nombreCarro,
+                              style: const TextStyle(fontFamily: 'Quicksand'),
+                            ),
+                            if (estado.ocupado)
+                            Row(
+                              children: [
+                                IconButton(
+                                  iconSize: 18,
+                                  splashRadius: 14,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: Icon(
+                                    Icons.edit_calendar_outlined,
+                                    color: const Color(0xFF204c6c),
+                                  ),
+                                  onPressed: () {},
+                                ),
+                                SizedBox(width: 8),
+                                IconButton(
+                                  iconSize: 18,
+                                  splashRadius: 14,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: const Color(0xFF204c6c),
+                                  ),
+                                  onPressed: () {
+                                    eliminarCita(estado.rentaID);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

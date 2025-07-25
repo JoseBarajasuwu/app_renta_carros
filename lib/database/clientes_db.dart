@@ -40,10 +40,14 @@ class ClienteDAO {
 
   static List<Map<String, dynamic>> obtenerClienteAgenda() {
     final result = DatabaseHelper().db.select(
-      'SELECT ClienteID, Nombre FROM Cliente',
+      'SELECT ClienteID, Nombre, Apellido FROM Cliente',
     );
     return result.map((row) {
-      return {'ClienteID': row['ClienteID'], 'Nombre': row['Nombre']};
+      return {
+        'ClienteID': row['ClienteID'],
+        'Nombre': row['Nombre'],
+        'Apellido': row['Apellido'],
+      };
     }).toList();
   }
 

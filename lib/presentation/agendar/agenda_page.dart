@@ -8,6 +8,7 @@ import 'package:renta_carros/core/utils/formateo_miles_text.dart';
 import 'package:renta_carros/database/carros_db.dart';
 import 'package:renta_carros/database/clientes_db.dart';
 import 'package:renta_carros/database/rentas_db.dart';
+import 'package:renta_carros/presentation/calendario/widget/calendario_widget.dart';
 
 class AgendarPage extends StatefulWidget {
   final String carroSeleccionado;
@@ -36,12 +37,13 @@ class _AgendarPageState extends State<AgendarPage> {
   bool estaVacioCosto = true;
   Timer? _debounce;
   bool mostrarSoloEditar = false;
-
+  double? costoTotal;
+  int? diasCompletos;
   List<Map<String, dynamic>> lUsuarios = [];
   List<Map<String, dynamic>> lPrecio = [];
   String? fechaHoraInicio;
   String? fechaHoraFin;
-  DateTimeRange? _selectedDateRange;
+
   final formKey = GlobalKey<FormState>();
   final List<DateTime> diasNoDisponibles = [
     DateTime(2025, 12, 25),
@@ -49,87 +51,16 @@ class _AgendarPageState extends State<AgendarPage> {
   ];
 
   final DateFormat formatoFechaHora = DateFormat('yyyy-MM-dd HH:mm');
-  Future<void> _selectDateTimeRange(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2025),
-      cancelText: "Cancelar",
-      errorFormatText: "Formato invalido",
-      fieldStartLabelText: "Fecha inicio",
-      fieldEndLabelText: "Fecha final",
-      confirmText: "Aceptar",
-      saveText: "Guardar",
-
-      lastDate: DateTime(2026),
-      initialDateRange: _selectedDateRange,
-    );
-
-    if (picked != null) {
-      final TimeOfDay? startHour = await showTimePicker(
-        initialEntryMode: TimePickerEntryMode.input,
-        cancelText: "Cancelar",
-        confirmText: "Aceptar",
-        hourLabelText: "Hora",
-        minuteLabelText: "Minuto",
-        helpText: "Hora incio",
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-
-      if (startHour == null) return;
-
-      final TimeOfDay? endHour = await showTimePicker(
-        cancelText: "Cancelar",
-        confirmText: "Aceptar",
-        hourLabelText: "Hora",
-        minuteLabelText: "Minuto",
-        helpText: "Hora final",
-
-        initialEntryMode: TimePickerEntryMode.input,
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-
-      if (endHour == null) return;
-
-      final startDateTime = DateTime(
-        picked.start.year,
-        picked.start.month,
-        picked.start.day,
-        startHour.hour,
-        startHour.minute,
-      );
-
-      final endDateTime = DateTime(
-        picked.end.year,
-        picked.end.month,
-        picked.end.day,
-        endHour.hour,
-        endHour.minute,
-      );
-
-      setState(() {
-        _selectedDateRange = DateTimeRange(
-          start: startDateTime,
-          end: endDateTime,
-        );
-        fechaHoraInicio = formatoFechaHora.format(startDateTime);
-        fechaHoraFin = formatoFechaHora.format(endDateTime);
-      });
-    }
-  }
 
   _validarYConfirmar({
     required String clienteID,
     required int carroID,
-    required String precioTotal,
+    required double precioTotal,
     required String precioPagado,
     required String pagoMetodo,
     required String observaciones,
   }) {
     int iClienteID = int.tryParse(clienteID) ?? 0;
-    String cPrecioTotal = precioTotal.replaceAll(',', '');
-    double iPrecioTotal = double.tryParse(cPrecioTotal) ?? 0;
     String cPrecioPagado = precioPagado.replaceAll(',', '');
     double iPrecioPagado = double.tryParse(cPrecioPagado) ?? 0.0;
     RentaDAO.insertar(
@@ -137,7 +68,7 @@ class _AgendarPageState extends State<AgendarPage> {
       carroID: carroID,
       fechaInicio: "$fechaHoraInicio",
       fechaFin: "$fechaHoraFin",
-      precioTotal: iPrecioTotal,
+      precioTotal: precioTotal,
       precioPagado: iPrecioPagado,
       tipoPago: pagoMetodo,
       observaciones: observaciones,
@@ -175,8 +106,10 @@ class _AgendarPageState extends State<AgendarPage> {
     return lUsuarios
         .where((elemento) {
           String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
+          String apellido =
+              (elemento["Apellido"] ?? '').toString().toLowerCase();
 
-          return nombre.contains(query);
+          return nombre.contains(query) || apellido.contains(query);
         })
         .take(5)
         .toList();
@@ -251,7 +184,7 @@ class _AgendarPageState extends State<AgendarPage> {
                 ...clientesFiltrados.map(
                   (cliente) => ListTile(
                     title: Text(
-                      cliente['Nombre'],
+                      "${cliente['Nombre']} ${cliente['Apellido']}",
                       style: const TextStyle(fontFamily: 'Quicksand'),
                     ),
                     leading: Radio<String>(
@@ -267,7 +200,6 @@ class _AgendarPageState extends State<AgendarPage> {
                     ),
                   ),
                 ),
-
                 if (clientesFiltrados.length > 5)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
@@ -285,7 +217,55 @@ class _AgendarPageState extends State<AgendarPage> {
                     ),
                   ),
                 const Divider(height: 30),
-
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final result =
+                          await showModalBottomSheet<Map<String, dynamic>>(
+                            context: context,
+                            isScrollControlled: true,
+                            builder:
+                                (context) => SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.85,
+                                  child: CalendarWithBlockedDays(
+                                    costoPorDia:
+                                        double.tryParse(
+                                          costoCtrl.text.replaceAll(',', ''),
+                                        ) ??
+                                        0,
+                                  ),
+                                ),
+                          );
+                      if (result != null) {
+                        setState(() {
+                          fechaHoraInicio = formatoFechaHora.format(
+                            result['start'],
+                          );
+                          fechaHoraFin = formatoFechaHora.format(result['end']);
+                          costoTotal = result['total'];
+                        });
+                        diasCompletos = result['diasCompletos'];
+                      }
+                    },
+                    child: const Text(
+                      'Seleccionar fechas',
+                      style: TextStyle(fontFamily: 'Quicksand'),
+                    ),
+                  ),
+                ),
+                if (fechaHoraInicio != null &&
+                    fechaHoraFin != null &&
+                    costoTotal != null)
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      'Inicio: $fechaHoraInicio\nFin: $fechaHoraFin\nTotal: \$$costoTotal',
+                      style: TextStyle(fontFamily: 'Quicksand', fontSize: 16),
+                    ),
+                  ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -311,6 +291,10 @@ class _AgendarPageState extends State<AgendarPage> {
                         ],
                         onChanged: (value) {
                           String clean = value.replaceAll(',', '');
+                          double dClean = double.tryParse(clean) ?? 0;
+                          if (diasCompletos != null) {
+                            costoTotal = diasCompletos! * dClean;
+                          }
                           setState(
                             () =>
                                 estaVacioCosto = clean.isEmpty || clean == "0",
@@ -343,7 +327,7 @@ class _AgendarPageState extends State<AgendarPage> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           icon: Icon(
-                            Icons.add_circle_outline,
+                            Icons.edit,
                             color: const Color(0xFF204c6c),
                           ),
                           onPressed: () {
@@ -409,7 +393,6 @@ class _AgendarPageState extends State<AgendarPage> {
                 DropdownButtonFormField<String>(
                   value: metodoPago,
                   isExpanded: true,
-
                   style: TextStyle(
                     fontFamily: 'Quicksand',
                     color: Colors.black,
@@ -470,62 +453,6 @@ class _AgendarPageState extends State<AgendarPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Padding(
-                //   padding: const EdgeInsets.only(bottom: 16),
-                //   child: _buildFechaHoraSelector(
-                //     label: 'Fecha y hora de inicio',
-                //     fecha: fechaHoraInicio,
-                //     onTap: () => _selectDateTimeRange(context),
-                //   ),
-                // ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ElevatedButton(
-                    onPressed: () => _selectDateTimeRange(context),
-                    child: Text(
-                      'Seleccionar Rango de Fecha y Hora',
-                      style: TextStyle(fontFamily: 'Quicksand'),
-                    ),
-                  ),
-                ),
-                if (_selectedDateRange != null)
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      'Inicio: $fechaHoraInicio\nFin: $fechaHoraFin',
-                      style: TextStyle(fontFamily: 'Quicksand', fontSize: 16),
-                    ),
-                  ),
-
-                // _buildFechaHoraSelector(
-                //   label: 'Fecha y hora final',
-                //   fecha: fechaHoraFin,
-                //   onTap: () => _selectDateTimeRange(context),
-                // ),
-                _selectedDateRange == null
-                    ? Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Te falta seleccionar fecha",
-                        style: const TextStyle(
-                          fontFamily: 'Quicksand',
-                          color: Colors.redAccent,
-                        ),
-                      ),
-                    )
-                    : fechaHoraInicio == fechaHoraFin
-                    ? Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "La fecha inicio y fecha fin, no pueden ser iguales",
-                        style: const TextStyle(
-                          fontFamily: 'Quicksand',
-                          color: Colors.redAccent,
-                        ),
-                      ),
-                    )
-                    : SizedBox(),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: TextFormField(
@@ -540,7 +467,6 @@ class _AgendarPageState extends State<AgendarPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -557,7 +483,7 @@ class _AgendarPageState extends State<AgendarPage> {
                           _validarYConfirmar(
                             clienteID: clienteSeleccionado!,
                             carroID: widget.carroID,
-                            precioTotal: costoCtrl.text,
+                            precioTotal: costoTotal!,
                             precioPagado: anticipoCtrl.text,
                             pagoMetodo: metodoPago!,
                             observaciones: observacionesCtrl.text,

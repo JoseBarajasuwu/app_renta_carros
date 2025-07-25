@@ -31,6 +31,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
         (d.isAtSameMomentAs(finSoloFecha) || d.isBefore(finSoloFecha))) {
       citasDelDia.add(
         CitaCarro(
+          rentaID: row['RentaID'],
           carroID: row['CarroID'],
           nombreCliente: row['NombreCompleto'],
           nombreCarro: row['NombreCarro'],
@@ -73,6 +74,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
       final citaActiva = citas.first;
       resultado.add(
         EstadoCarro(
+          rentaID: citaActiva.rentaID,
           carroID: carroID,
           nombreCliente: citaActiva.nombreCliente,
           nombreCarro: nombreCarro,
@@ -91,6 +93,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
     } else {
       resultado.add(
         EstadoCarro(
+          rentaID: 0,
           carroID: carroID,
           nombreCliente: '',
           nombreCarro: nombreCarro,

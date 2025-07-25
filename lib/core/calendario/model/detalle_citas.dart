@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CitaCarro {
+  final int rentaID;
   final int carroID;
   final String nombreCliente;
   final String nombreCarro;
@@ -14,6 +15,7 @@ class CitaCarro {
   final TimeOfDay? horaFinOcupacion;
   final String observacion;
   CitaCarro({
+    required this.rentaID,
     required this.carroID,
     required this.nombreCliente,
     required this.nombreCarro,
@@ -42,6 +44,7 @@ class CitaCarro {
 }
 
 class EstadoCarro {
+  final int rentaID;
   final int carroID;
   final String nombreCliente;
   final String nombreCarro;
@@ -57,6 +60,7 @@ class EstadoCarro {
   final TimeOfDay? horaFinOcupacion;
 
   EstadoCarro({
+    required this.rentaID,
     required this.carroID,
     required this.nombreCliente,
     required this.nombreCarro,

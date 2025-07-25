@@ -47,6 +47,12 @@ class RentaDAO {
     );
   }
 
+  static void eliminar({required int rentaID}) {
+    DatabaseHelper().db.execute('DELETE FROM Renta WHERE RentaID = ?', [
+      rentaID,
+    ]);
+  }
+
   static Future<List<Map<String, dynamic>>> obtenerHistorialCarros({
     required String fecha,
   }) async {
@@ -54,6 +60,7 @@ class RentaDAO {
       final result = db.select(
         '''
       SELECT
+        r.RentaID,
         c.CarroID,
         cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
         c.NombreCarro,
@@ -75,6 +82,7 @@ class RentaDAO {
       return result
           .map(
             (row) => {
+              'RentaID': row['RentaID'],
               'CarroID': row['CarroID'],
               'NombreCompleto': row['NombreCompleto'],
               'NombreCarro': row['NombreCarro'],
@@ -89,41 +97,41 @@ class RentaDAO {
     });
   }
 
-  Future<List<Map<String, dynamic>>> obtenerHistorialRenta({
-    required String month,
-    required int carroID,
-  }) async {
-    final result = DatabaseHelper().db.select(
-      '''
-      SELECT 
-        r.FechaInicio,
-        r.FechaFin,
-        r.PrecioTotal,
-        r.PrecioPagado,
-        r.TipoPago,
-        r.Observaciones
-      FROM Carro c
-      LEFT JOIN Renta r ON c.CarroID = r.CarroID AND substr(r.FechaInicio,1,7)=?
-      WHERE r.CarroID = ?
-      GROUP BY c.CarroID, c.NombreCarro;
-      ''',
-      [month, carroID],
-    );
-    return result
-        .map(
-          (row) => {
-            'CarroID': row['CarroID'],
-            'NombreCompleto': row['NombreCompleto'],
-            'NombreCarro': row['NombreCarro'],
-            'FechaInicio': row['FechaInicio'],
-            'FechaFin': row['FechaFin'],
-            'PrecioTotal': row['PrecioTotal'],
-            'PrecioPagado': row['PrecioPagado'],
-            'TipoPago': row['TipoPago'],
-          },
-        )
-        .toList();
-  }
+  // Future<List<Map<String, dynamic>>> obtenerHistorialRenta({
+  //   required String month,
+  //   required int carroID,
+  // }) async {
+  //   final result = DatabaseHelper().db.select(
+  //     '''
+  //     SELECT 
+  //       r.FechaInicio,
+  //       r.FechaFin,
+  //       r.PrecioTotal,
+  //       r.PrecioPagado,
+  //       r.TipoPago,
+  //       r.Observaciones
+  //     FROM Carro c
+  //     LEFT JOIN Renta r ON c.CarroID = r.CarroID AND substr(r.FechaInicio,1,7)=?
+  //     WHERE r.CarroID = ?
+  //     GROUP BY c.CarroID, c.NombreCarro;
+  //     ''',
+  //     [month, carroID],
+  //   );
+  //   return result
+  //       .map(
+  //         (row) => {
+  //           'CarroID': row['CarroID'],
+  //           'NombreCompleto': row['NombreCompleto'],
+  //           'NombreCarro': row['NombreCarro'],
+  //           'FechaInicio': row['FechaInicio'],
+  //           'FechaFin': row['FechaFin'],
+  //           'PrecioTotal': row['PrecioTotal'],
+  //           'PrecioPagado': row['PrecioPagado'],
+  //           'TipoPago': row['TipoPago'],
+  //         },
+  //       )
+  //       .toList();
+  // }
   // static List<Map<String, dynamic>> obtenerTodas() {
   //   final result = DatabaseHelper().db.select('SELECT * FROM rentas');
   //   return result.map((row) => row.toMap()).toList();
