@@ -1,3 +1,5 @@
+import 'package:renta_carros/presentation/calendario/widget/calendario_widget.dart';
+
 import 'database.dart';
 
 void importRentasTabla() {
@@ -47,6 +49,27 @@ class RentaDAO {
     );
   }
 
+  static void update({
+    required int rentaID,
+    required String fechaInicio,
+    required String fechaFin,
+    required double precioTotal,
+    required double precioPagado,
+    required String observaciones,
+  }) {
+    DatabaseHelper().db.execute(
+      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ? WHERE RentaID = ?',
+      [
+        fechaInicio,
+        fechaFin,
+        precioTotal,
+        precioPagado,
+        observaciones,
+        rentaID,
+      ],
+    );
+  }
+
   static void eliminar({required int rentaID}) {
     DatabaseHelper().db.execute('DELETE FROM Renta WHERE RentaID = ?', [
       rentaID,
@@ -68,13 +91,15 @@ class RentaDAO {
         r.FechaFin,
         r.PrecioTotal,
         r.PrecioPagado,
-        r.TipoPago
+        r.TipoPago,
+        r.Observaciones
       FROM
         Carro c
       LEFT JOIN
         Renta r ON c.CarroID = r.CarroID
       LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
         AND DATE(?) BETWEEN DATE(r.FechaInicio) AND DATE(r.FechaFin)
+        ORDER BY NombreCarro;
       ''',
         [fecha],
       );
@@ -91,10 +116,158 @@ class RentaDAO {
               'PrecioTotal': row['PrecioTotal'],
               'PrecioPagado': row['PrecioPagado'],
               'TipoPago': row['TipoPago'],
+              'Observaciones': row['Observaciones'],
             },
           )
           .toList();
     });
+  }
+
+  static List<Map<String, dynamic>> obtenerHistorial({required String fecha}) {
+    final result = DatabaseHelper().db.select(
+      '''
+        SELECT 
+          r.RentaID,
+          c.Nombre || " " || c.Apellido as NombreCompleto,
+          ca.NombreCarro,
+          ca.Anio,
+          ca.Placas,
+          r.FechaInicio,
+          r.FechaFin
+        FROM 
+          Renta as r
+        LEFT JOIN 
+          Cliente as c ON r.ClienteID = c.ClienteID
+        LEFT JOIN 
+          Carro as ca ON ca.CarroID = r.CarroID
+        WHERE 
+          date(FechaInicio) = ? OR date(FechaFin) = ?;
+    ''',
+      [fecha, fecha],
+    );
+    print(result);
+    // Construir lista de mapas
+    return result.map((row) {
+      return {
+        'RentaID': row['RentaID'],
+        'NombreCompleto': row['NombreCompleto'],
+        'NombreCarro': row['NombreCarro'],
+        'Anio': row['Anio'],
+        'Placas': row['Placas'],
+        'FechaInicio': row['FechaInicio'],
+        'FechaFin': row['FechaFin'],
+      };
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>> obtenerFechaOcupadoCarro({
+    required int carroID,
+  }) {
+    final result = DatabaseHelper().db.select(
+      '''
+        WITH RECURSIVE FechasOcupadas AS (
+          SELECT 
+            CarroID,
+            DATE(FechaInicio, '+1 day') AS Fecha,
+            DATE(FechaFin) AS FechaFin
+          FROM Renta
+          WHERE CarroID = ?
+
+          UNION ALL
+
+          SELECT
+            CarroID,
+            DATE(Fecha, '+1 day'),
+            FechaFin
+          FROM FechasOcupadas
+          WHERE DATE(Fecha, '+1 day') < FechaFin  -- Excluye FechaFin
+        )
+        SELECT DISTINCT CarroID, Fecha
+        FROM FechasOcupadas
+        ORDER BY Fecha;
+    ''',
+      [carroID],
+    );
+    print(result);
+    // Construir lista de mapas
+    return result.map((row) {
+      return {'Fecha': row['Fecha']};
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>> obtenerFechasCarro({required int rentaID}) {
+    final result = DatabaseHelper().db.select(
+      '''
+         WITH RECURSIVE FechasOcupadas AS (
+          SELECT
+            CarroID,
+            DATE(FechaInicio) AS Fecha,
+            DATE(FechaFin) AS FechaFin
+          FROM Renta
+          WHERE RentaID = ?
+
+          UNION ALL
+
+          SELECT
+            CarroID,
+            DATE(Fecha, '+1 day'),
+            FechaFin
+          FROM FechasOcupadas
+          WHERE DATE(Fecha, '+1 day') <= FechaFin
+        )
+        SELECT DISTINCT CarroID, Fecha
+        FROM FechasOcupadas
+        ORDER BY Fecha;
+    ''',
+      [rentaID],
+    );
+    print(result);
+    // Construir lista de mapas
+    return result.map((row) {
+      return {'Fecha': row['Fecha']};
+    }).toList();
+  }
+
+  static List<DiaDisponible> obtenerDiasDisponibles({required int carroID}) {
+    final result = DatabaseHelper().db.select(
+      '''
+        SELECT 
+          CarroID,
+          RentaID,
+          'Inicio' AS Tipo,
+          FechaInicio AS FechaIncompleta
+        FROM Renta
+        WHERE CarroID = ?
+          AND DATE(FechaInicio) <> DATE(FechaFin)
+
+        UNION
+
+        SELECT 
+          CarroID,
+          RentaID,
+          'Fin' AS Tipo,
+          FechaFin AS FechaIncompleta
+        FROM Renta
+        WHERE CarroID = ?
+          AND DATE(FechaInicio) <> DATE(FechaFin)
+
+    ''',
+      [carroID, carroID],
+    );
+
+    // Convertir cada fila a instancia de _DiaDisponible
+    final diasDisponibles =
+        result.map((row) {
+          final fechaStr = row['FechaIncompleta'] as String;
+          final tipo = row['Tipo'] as String;
+          final rentaID = row['RentaID'].toString();
+          // Parsear string a DateTime
+          final dia = DateTime.parse(fechaStr);
+
+          return DiaDisponible(dia, tipo, rentaID);
+        }).toList();
+
+    return diasDisponibles;
   }
 
   // Future<List<Map<String, dynamic>>> obtenerHistorialRenta({
@@ -103,7 +276,7 @@ class RentaDAO {
   // }) async {
   //   final result = DatabaseHelper().db.select(
   //     '''
-  //     SELECT 
+  //     SELECT
   //       r.FechaInicio,
   //       r.FechaFin,
   //       r.PrecioTotal,
