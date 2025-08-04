@@ -21,32 +21,26 @@ bool puedeAgendar(
   final d = DateTime(dia.year, dia.month, dia.day);
   final fin = DateTime(fechaFin.year, fechaFin.month, fechaFin.day);
 
-  // Si el día está antes del último día ocupado, no puede agendar
   if (d.isBefore(fin)) {
+    // Día antes del fin, carro ocupado → no disponible
     return false;
   }
 
-  // Si el día es el último día ocupado
   if (d.isAtSameMomentAs(fin)) {
     if (horaFinOcupacion == null) {
-      // Sin hora de liberación: ocupado todo el día, no puede agendar
+      // Sin hora fin, ocupa todo el día → no disponible
       return false;
     }
-
-    // Si es el último día, la hora de liberación importa
-    final ahora = TimeOfDay.now();
-    final ahoraMinutos = ahora.hour * 60 + ahora.minute;
-    final finMinutos = horaFinOcupacion.hour * 60 + horaFinOcupacion.minute;
-
-    // Solo puede agendar si la hora actual es igual o mayor que la hora de liberación
-    return ahoraMinutos >= finMinutos;
+    // Aquí permitimos agendar si la hora actual es antes que la hora fin
+    // porque se libera durante el día y puede usarse para lo que quede
+    return true;
   }
 
-  // Si está después del último día ocupado, puede agendar
+  // Día después del fin → disponible
   if (d.isAfter(fin)) {
     return true;
   }
 
-  // Caso por defecto (no debería pasar)
+  // Caso por defecto (seguridad)
   return true;
 }

@@ -10,7 +10,6 @@ class CalendarioPage extends StatefulWidget {
 
 class _CalendarioPageState extends State<CalendarioPage> {
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +21,8 @@ class _CalendarioPageState extends State<CalendarioPage> {
           firstDay: DateTime.utc(2020, 1, 1),
           lastDay: DateTime.utc(2035, 12, 31),
           focusedDay: _focusedDay,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
-              _selectedDay = selectedDay;
               _focusedDay = focusedDay;
             });
             Navigator.push(

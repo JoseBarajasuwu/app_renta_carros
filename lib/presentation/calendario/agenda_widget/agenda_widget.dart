@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:renta_carros/core/utils/formateo_miles_text.dart';
 import 'package:renta_carros/database/rentas_db.dart';
+import 'package:renta_carros/presentation/calendario/carro_descompuesto/carro_descompuesto_page.dart';
 import 'package:renta_carros/presentation/calendario/widget/calendario_widget.dart';
 
 class AgendarWidget extends StatefulWidget {
@@ -17,6 +18,7 @@ class AgendarWidget extends StatefulWidget {
   final double precioPagado;
   final String observaciones;
   final String metodoPago;
+  final DateTime fecha;
   const AgendarWidget({
     super.key,
     required this.carroID,
@@ -28,6 +30,7 @@ class AgendarWidget extends StatefulWidget {
     required this.precioPagado,
     required this.observaciones,
     required this.metodoPago,
+    required this.fecha,
   });
 
   @override
@@ -50,7 +53,9 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   int? diasCompletos;
   String? fechaHoraInicio;
   String? fechaHoraFin;
-
+  int? carroIDDescompuesto;
+  String? nombreCarroDescompuesto;
+  double?  precioTotalDescompuesto;
   final formKey = GlobalKey<FormState>();
 
   final DateFormat formatoFechaHora = DateFormat('yyyy-MM-dd HH:mm');
@@ -174,6 +179,21 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                   ),
                 ),
                 const Divider(height: 30),
+                // DetalleCitasDescompuestoPage
+                ElevatedButton(
+                  onPressed: () {
+                    showPasswordDialog(
+                      carroID: widget.carroID,
+                      context: context,
+                      carroSeleccionado: widget.carroSeleccionado,
+                      diasOcupados: [],
+                      precioPagado: 1,
+                      precioTotal: 2,
+                    );
+                  },
+                  child: Text("Carro"),
+                ),
+
                 Align(
                   alignment: Alignment.bottomLeft,
                   child: ElevatedButton(
@@ -448,6 +468,111 @@ class _AgendarWidgetState extends State<AgendarWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  void showPasswordDialog({
+    required BuildContext context,
+    required int carroID,
+    required String carroSeleccionado,
+    required List<DateTime> diasOcupados,
+    required double precioTotal,
+    required double precioPagado,
+  }) {
+    final TextEditingController passwordController = TextEditingController();
+    bool obscureText = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                'Ingresa tu contraseña para cambiar de carro',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Quicksand',
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscureText,
+                    style: TextStyle(fontFamily: 'Quicksand'),
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureText ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            obscureText = !obscureText;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(fontFamily: 'Quicksand'),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Aceptar',
+                        style: TextStyle(fontFamily: 'Quicksand'),
+                      ),
+                      onPressed: () async {
+                        if (passwordController.text == "root") {
+                          Navigator.pop(context);
+                          final resultado = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => DetalleCitasDescompuestoPage(
+                                    fecha: widget.fecha,
+                                  ),
+                            ),
+                          );
+                          if (resultado != null) {
+                            carroIDDescompuesto = resultado[0];
+                            nombreCarroDescompuesto = resultado[1];
+                            precioTotalDescompuesto = resultado[2];
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
