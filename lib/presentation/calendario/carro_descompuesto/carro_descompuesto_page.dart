@@ -6,8 +6,13 @@ import 'package:renta_carros/core/calendario/model/detalle_citas.dart';
 
 class DetalleCitasDescompuestoPage extends StatefulWidget {
   final DateTime fecha;
+  final int carroID;
 
-  const DetalleCitasDescompuestoPage({super.key, required this.fecha});
+  const DetalleCitasDescompuestoPage({
+    super.key,
+    required this.fecha,
+    required this.carroID,
+  });
 
   @override
   State<DetalleCitasDescompuestoPage> createState() =>
@@ -92,143 +97,162 @@ class _DetalleCitasDescompuestoPageState
                       iconoColor = Colors.red;
                     }
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        leading: Icon(
-                          estado.ocupado
-                              ? Icons.directions_car_filled
-                              : Icons.directions_car,
-                          color: iconoColor,
-                        ),
-                        title: Text(
-                          estado.nombreCarro,
-                          style: const TextStyle(fontFamily: 'Quicksand'),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ocupacionTexto + detalleHoras,
+                    return estado.carroID == widget.carroID
+                        ? SizedBox()
+                        : Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              estado.ocupado
+                                  ? Icons.directions_car_filled
+                                  : Icons.directions_car,
+                              color: iconoColor,
+                            ),
+                            title: Text(
+                              estado.nombreCarro,
                               style: const TextStyle(fontFamily: 'Quicksand'),
                             ),
-                            if (estado.ocupado)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    estado.nombreCliente,
-                                    style: TextStyle(fontFamily: 'Quicksand'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ocupacionTexto + detalleHoras,
+                                  style: const TextStyle(
+                                    fontFamily: 'Quicksand',
                                   ),
-
-                                  RichText(
-                                    text: TextSpan(
-                                      style: const TextStyle(
-                                        fontFamily: 'Quicksand',
-                                      ),
-                                      children: [
-                                        const TextSpan(
-                                          text: "Total: ",
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                        TextSpan(
-                                          text: '\$${estado.precioTotal}',
-                                          style: const TextStyle(
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: const TextStyle(
-                                        fontFamily: 'Quicksand',
-                                      ),
-                                      children: [
-                                        const TextSpan(
-                                          text: "Anticipo: ",
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                        TextSpan(
-                                          text: '\$${estado.precioPagado}',
-                                          style: const TextStyle(
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: const TextStyle(
-                                        fontFamily: 'Quicksand',
-                                      ),
-                                      children: [
-                                        const TextSpan(
-                                          text: "Resto: ",
-                                          style: TextStyle(color: Colors.black),
-                                        ),
-                                        TextSpan(
-                                          text: '\$${estado.resto}',
-                                          style: const TextStyle(
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
+                                ),
+                                if (estado.ocupado)
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        estado.tipoPago,
-                                        style: const TextStyle(
+                                        estado.nombreCliente,
+                                        style: TextStyle(
                                           fontFamily: 'Quicksand',
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+
+                                      RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Quicksand',
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: "Total: ",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '\$${estado.precioTotal}',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Quicksand',
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: "Anticipo: ",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '\$${estado.precioPagado}',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Quicksand',
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: "Resto: ",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '\$${estado.resto}',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            estado.tipoPago,
+                                            style: const TextStyle(
+                                              fontFamily: 'Quicksand',
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            "50%",
+                                            style: TextStyle(
+                                              color:
+                                                  estado.pagoMitad == 1
+                                                      ? Colors.red
+                                                      : Colors.green,
+                                              fontFamily: 'Quicksand',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                       Text(
-                                        "50%",
-                                        style: TextStyle(
-                                          color:
-                                              estado.pagoMitad == 1
-                                                  ? Colors.red
-                                                  : Colors.green,
+                                        estado.observacion.isEmpty
+                                            ? "No hubo observación"
+                                            : estado.observacion,
+                                        style: const TextStyle(
                                           fontFamily: 'Quicksand',
                                         ),
                                       ),
                                     ],
                                   ),
-                                  Text(
-                                    estado.observacion.isEmpty
-                                        ? "No hubo observación"
-                                        : estado.observacion,
-                                    style: const TextStyle(
-                                      fontFamily: 'Quicksand',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                        trailing:
-                            agendarPosible
-                                ? ElevatedButton(
-                                  onPressed: () async {
-                                    List<dynamic> lCarro = [estado.carroID, estado.nombreCarro, estado.precioTotal];
-                                    Navigator.pop(context, lCarro);
-                                  },
-                                  child: const Text(
-                                    'Agendar',
-                                    style: TextStyle(fontFamily: 'Quicksand'),
-                                  ),
-                                )
-                                : null,
-                      ),
-                    );
+                              ],
+                            ),
+                            trailing:
+                                agendarPosible
+                                    ? ElevatedButton(
+                                      onPressed: () async {
+                                        List<dynamic> lCarro = [
+                                          estado.carroID,
+                                          estado.nombreCarro,
+                                          estado.precioTotal,
+                                        ];
+                                        Navigator.pop(context, lCarro);
+                                      },
+                                      child: const Text(
+                                        'Seleccionar carro para el cambio',
+                                        style: TextStyle(
+                                          fontFamily: 'Quicksand',
+                                        ),
+                                      ),
+                                    )
+                                    : null,
+                          ),
+                        );
                   },
                 );
               },

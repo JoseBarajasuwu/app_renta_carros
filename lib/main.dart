@@ -7,6 +7,7 @@ import 'package:renta_carros/database/database.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:renta_carros/clico_de_vida_app.dart';
+import 'package:window_size/window_size.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,10 +16,12 @@ void main() async {
   await dbHelper.init();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    doWhenWindowReady(() {
-      final initialSize = Size(600, 700);
-      appWindow.minSize = Size(520, 600);
-      appWindow.size = initialSize;
+    doWhenWindowReady(() async {
+      final screen = await getCurrentScreen();
+      final screenFrame = screen!.visibleFrame;
+      final screenSize = Size(screenFrame.width, screenFrame.height);
+      appWindow.minSize = Size(800, 600);
+      appWindow.size = screenSize;
       appWindow.alignment = Alignment.center;
       appWindow.title = "Renta Car";
       appWindow.show();

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:renta_carros/database/calendario_db.dart';
 import 'package:renta_carros/database/carros_db.dart';
 import 'package:renta_carros/database/clientes_db.dart';
 import 'package:renta_carros/database/mantenimientos_db.dart';
@@ -27,6 +28,7 @@ class DatabaseHelper {
       print('Creando base de datos...');
       _crearTablas();
     } else {
+      importCalendarioTabla();
       print('Base de datos ya existente.');
     }
   }

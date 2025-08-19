@@ -55,7 +55,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   String? fechaHoraFin;
   int? carroIDDescompuesto;
   String? nombreCarroDescompuesto;
-  double?  precioTotalDescompuesto;
+  double? precioTotalDescompuesto;
   final formKey = GlobalKey<FormState>();
 
   final DateFormat formatoFechaHora = DateFormat('yyyy-MM-dd HH:mm');
@@ -67,14 +67,31 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   }) {
     String cPrecioPagado = precioPagado.replaceAll(',', '');
     double iPrecioPagado = double.tryParse(cPrecioPagado) ?? 0.0;
-    RentaDAO.update(
-      rentaID: widget.rentaID,
-      fechaInicio: "$fechaHoraInicio",
-      fechaFin: "$fechaHoraFin",
-      precioTotal: precioTotal,
-      precioPagado: iPrecioPagado,
-      observaciones: observaciones,
-    );
+    if (carroIDDescompuesto == null &&
+        nombreCarroDescompuesto == null &&
+        precioTotalDescompuesto == null) {
+      RentaDAO.update(
+        rentaID: widget.rentaID,
+        fechaInicio: "$fechaHoraInicio",
+        fechaFin: "$fechaHoraFin",
+        precioTotal: precioTotal,
+        precioPagado: iPrecioPagado,
+        observaciones: observaciones,
+      );
+    } else if (carroIDDescompuesto != null &&
+        nombreCarroDescompuesto != null &&
+        precioTotalDescompuesto != null) {
+      RentaDAO.updateCarroRemplazo(
+        rentaID: widget.rentaID,
+        carroID: widget.carroID,
+        fechaInicio: "$fechaHoraInicio",
+        fechaFin: "$fechaHoraFin",
+        precioTotal: precioTotal,
+        precioPagado: iPrecioPagado,
+        observaciones: observaciones,
+      );
+    }
+
     Navigator.pop(context, true);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,8 +105,9 @@ class _AgendarWidgetState extends State<AgendarWidget> {
 
   List<DateTime> diasNoDisponibles = [];
   Future<void> cargaDiasOcupados() async {
+    int? carroID = carroIDDescompuesto ?? widget.carroID;
     List<Map<String, dynamic>> lFecha = RentaDAO.obtenerFechaOcupadoCarro(
-      carroID: widget.carroID,
+      carroID: carroID,
     );
     diasNoDisponibles = convertirFechasBloqueadas(lFecha);
   }
@@ -109,8 +127,9 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   List<DiaDisponible> diasDisponibles = [];
   List<DateTime> diasOcupados = [];
   Future<void> cargaDias() async {
+    int? carroID = carroIDDescompuesto ?? widget.carroID;
     List<DiaDisponible> lFecha = RentaDAO.obtenerDiasDisponibles(
-      carroID: widget.carroID,
+      carroID: carroID,
     );
     diasDisponibles = lFecha;
 
@@ -124,6 +143,21 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     return original.where((fecha) {
       return !fechasAExcluir.any((excluir) => isSameDay(fecha, excluir.dia));
     }).toList();
+  }
+
+  actualizar({
+    required int? carroID,
+    required String? nombreCarro,
+    required double? precioTotal,
+  }) {
+    setState(() {
+      carroIDDescompuesto = carroID;
+      nombreCarroDescompuesto = nombreCarro;
+      precioTotalDescompuesto = precioTotal;
+    });
+    costoCtrl.text = precioTotalDescompuesto.toString();
+    cargaDiasOcupados();
+    cargaDias();
   }
 
   @override
@@ -152,7 +186,9 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Agendar para "${widget.carroSeleccionado}"',
+          nombreCarroDescompuesto == null
+              ? 'Agendar para "${widget.carroSeleccionado}"'
+              : 'Se remplazara "${widget.carroSeleccionado}" por "$nombreCarroDescompuesto"',
           style: const TextStyle(fontFamily: 'Quicksand', color: Colors.white),
         ),
         backgroundColor: const Color(0xFF204c6c),
@@ -180,20 +216,28 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                 ),
                 const Divider(height: 30),
                 // DetalleCitasDescompuestoPage
-                ElevatedButton(
-                  onPressed: () {
-                    showPasswordDialog(
-                      carroID: widget.carroID,
-                      context: context,
-                      carroSeleccionado: widget.carroSeleccionado,
-                      diasOcupados: [],
-                      precioPagado: 1,
-                      precioTotal: 2,
-                    );
-                  },
-                  child: Text("Carro"),
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      showPasswordDialog(context: context);
+                    },
+                    child: Text("¿El carro se descompuso?"),
+                  ),
                 ),
+                const SizedBox(height: 8),
 
+                if (carroIDDescompuesto != null &&
+                    nombreCarroDescompuesto != null &&
+                    precioTotalDescompuesto != null)
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      'Carro nuevo: $nombreCarroDescompuesto',
+                      style: TextStyle(fontFamily: 'Quicksand', fontSize: 16),
+                    ),
+                  ),
+                const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.bottomLeft,
                   child: ElevatedButton(
@@ -471,14 +515,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     );
   }
 
-  void showPasswordDialog({
-    required BuildContext context,
-    required int carroID,
-    required String carroSeleccionado,
-    required List<DateTime> diasOcupados,
-    required double precioTotal,
-    required double precioPagado,
-  }) {
+  void showPasswordDialog({required BuildContext context}) {
     final TextEditingController passwordController = TextEditingController();
     bool obscureText = true;
 
@@ -555,13 +592,16 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                               builder:
                                   (_) => DetalleCitasDescompuestoPage(
                                     fecha: widget.fecha,
+                                    carroID: widget.carroID,
                                   ),
                             ),
                           );
                           if (resultado != null) {
-                            carroIDDescompuesto = resultado[0];
-                            nombreCarroDescompuesto = resultado[1];
-                            precioTotalDescompuesto = resultado[2];
+                            actualizar(
+                              carroID: resultado[0],
+                              nombreCarro: resultado[1],
+                              precioTotal: resultado[2],
+                            );
                           }
                         }
                       },

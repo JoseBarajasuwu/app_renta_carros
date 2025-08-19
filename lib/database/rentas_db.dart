@@ -70,6 +70,29 @@ class RentaDAO {
     );
   }
 
+  static void updateCarroRemplazo({
+    required int rentaID,
+    required int carroID,
+    required String fechaInicio,
+    required String fechaFin,
+    required double precioTotal,
+    required double precioPagado,
+    required String observaciones,
+  }) {
+    DatabaseHelper().db.execute(
+      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ?, CarroID = ? WHERE RentaID = ?',
+      [
+        fechaInicio,
+        fechaFin,
+        precioTotal,
+        precioPagado,
+        observaciones,
+        carroID,
+        rentaID,
+      ],
+    );
+  }
+
   static void eliminar({required int rentaID}) {
     DatabaseHelper().db.execute('DELETE FROM Renta WHERE RentaID = ?', [
       rentaID,
