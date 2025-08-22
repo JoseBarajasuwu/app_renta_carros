@@ -6,6 +6,7 @@ void importCalendarioTabla() {
       CalendarioID INTEGER PRIMARY KEY AUTOINCREMENT,
       Descripcion TEXT NOT NULL,
       FechaRegistro TEXT NOT NULL,
+      CarroID INTEGER,
       Estatus INTEGER
     );
   ''');

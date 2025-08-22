@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:renta_carros/presentation/calendario/calendario_page.dart';
 import 'package:renta_carros/presentation/carros/carros_page.dart';
 import 'package:renta_carros/presentation/clientes/clientes_page.dart';
+import 'package:renta_carros/presentation/eventos/eventos_page.dart';
 import 'package:renta_carros/presentation/historial/historial_page.dart';
 
 class BottonNavigation extends StatefulWidget {
@@ -19,6 +20,7 @@ class _BottonNavigationState extends State<BottonNavigation> {
     ClientesPage(),
     VehiculosPage(),
     HistorialPage(),
+    EventoPage()
   ];
 
   @override
@@ -62,10 +64,10 @@ class _BottonNavigationState extends State<BottonNavigation> {
               label: "Historial",
             ),
 
-            // BottomNavigationBarItem(
-            //   icon: Icon(Icons.person_outline_outlined),
-            //   label: 'Cuenta',
-            // ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event),
+              label: 'Eventos',
+            ),
           ],
         ),
       ),
