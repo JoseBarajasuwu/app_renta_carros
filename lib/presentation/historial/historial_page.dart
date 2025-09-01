@@ -49,6 +49,7 @@ class _HistorialPageState extends State<HistorialPage> {
         C.CarroID AS id,
         C.NombreCarro AS model,
         IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
+        IFNULL(SUM(R.Comision), 0) AS totalComision,
         IFNULL(SUM(M.Costo), 0) AS totalServicios
       FROM Carro C
       LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
@@ -82,6 +83,8 @@ class _HistorialPageState extends State<HistorialPage> {
         carroID: id,
         model: row['model'] as String,
         totalRenta: (row['totalRenta'] as num).toDouble(),
+        totalComision:
+            (row['totalComision'] as num).toDouble(), // <--- nuevo campo
         totalServicios: (row['totalServicios'] as num).toDouble(),
         services: serviciosMap[id] ?? [],
       );
@@ -104,7 +107,9 @@ class _HistorialPageState extends State<HistorialPage> {
           final cars = snapshot.data!;
           final totRenta = cars.fold(0.0, (s, c) => s + c.totalRenta);
           final totServ = cars.fold(0.0, (s, c) => s + c.totalServicios);
-          final totNet = totRenta - totServ;
+          final totComision = cars.fold(0.0, (s, c) => s + c.totalComision);
+          final totComiServ = totServ + totComision;
+          final totNet = totRenta - totComiServ;
 
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -139,6 +144,10 @@ class _HistorialPageState extends State<HistorialPage> {
                         InfoRow(
                           label: "Total servicios:",
                           value: "- \$${_formatter.format(totServ)}",
+                        ),
+                        InfoRow(
+                          label: "Total comisiones:",
+                          value: "- \$${_formatter.format(totComision)}",
                         ),
                         const Divider(),
                         InfoRow(
@@ -184,6 +193,16 @@ class _HistorialPageState extends State<HistorialPage> {
                                   label: "Renta:",
                                   value:
                                       "\$${_formatter.format(car.totalRenta)}",
+                                ),
+                                InfoRow(
+                                  label: "Comisión:",
+                                  value:
+                                      "- \$${_formatter.format(car.totalComision)}",
+                                ),
+                                InfoRow(
+                                  label: "Total servicios:",
+                                  value:
+                                      "- \$${_formatter.format(car.totalServicios)}",
                                 ),
                               ],
 
@@ -358,11 +377,11 @@ class _HistorialPageState extends State<HistorialPage> {
                                 ),
                               ] else ...[
                                 const Divider(),
-                                InfoRow(
-                                  label: "Total servicios:",
-                                  value:
-                                      "\$${_formatter.format(car.totalServicios)}",
-                                ),
+                                // InfoRow(
+                                //   label: "Total servicios:",
+                                //   value:
+                                //       "\$${_formatter.format(car.totalServicios)}",
+                                // ),
                                 InfoRow(
                                   label: "Ganancia neta:",
                                   value: "\$${_formatter.format(ganancia)}",

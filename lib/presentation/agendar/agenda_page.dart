@@ -28,6 +28,7 @@ class _AgendarPageState extends State<AgendarPage> {
   final formDetalle = GlobalKey<FormState>();
   TextEditingController buscarCtrl = TextEditingController();
   TextEditingController costoCtrl = TextEditingController();
+  TextEditingController comisionCtrl = TextEditingController();
   TextEditingController anticipoCtrl = TextEditingController();
   TextEditingController observacionesCtrl = TextEditingController();
   String? metodoPago;
@@ -35,8 +36,10 @@ class _AgendarPageState extends State<AgendarPage> {
 
   bool estaVacioAnticipo = true;
   bool estaVacioCosto = true;
+  bool estaVacioComision = true;
   Timer? _debounce;
-  bool mostrarSoloEditar = false;
+  bool mostrarSoloEditarCosto = false;
+  bool mostrarSoloEditarComision = false;
   double? costoTotal;
   int? diasCompletos;
   List<Map<String, dynamic>> lUsuarios = [];
@@ -67,10 +70,14 @@ class _AgendarPageState extends State<AgendarPage> {
     required String precioPagado,
     required String pagoMetodo,
     required String observaciones,
+    required String comision,
   }) {
     int iClienteID = int.tryParse(clienteID) ?? 0;
     String cPrecioPagado = precioPagado.replaceAll(',', '');
     double iPrecioPagado = double.tryParse(cPrecioPagado) ?? 0.0;
+    String cleanComision = comision.replaceAll(',', '');
+    double dComision = double.tryParse(cleanComision) ?? 0;
+
     RentaDAO.insertar(
       clienteID: iClienteID,
       carroID: carroID,
@@ -80,6 +87,7 @@ class _AgendarPageState extends State<AgendarPage> {
       precioPagado: iPrecioPagado,
       tipoPago: pagoMetodo,
       observaciones: observaciones,
+      comision: dComision,
     );
     Navigator.pop(context, true);
     if (context.mounted) {
@@ -124,6 +132,7 @@ class _AgendarPageState extends State<AgendarPage> {
     final lista = CarroDAO.obtenerPrecioCarro(carroID: widget.carroID);
     lPrecio = lista;
     costoCtrl.text = lPrecio[0]["Costo"].toString();
+    comisionCtrl.text = lPrecio[0]["Comision"].toString();
     print(lPrecio);
   }
 
@@ -137,14 +146,15 @@ class _AgendarPageState extends State<AgendarPage> {
   List<Map<String, dynamic>> get clientesFiltrados {
     String query = buscarCtrl.text.toLowerCase();
     if (query.isEmpty) return lUsuarios;
-
     return lUsuarios
         .where((elemento) {
           String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
           String apellido =
               (elemento["Apellido"] ?? '').toString().toLowerCase();
-
-          return nombre.contains(query) || apellido.contains(query);
+          String nombreCompleto = "$nombre $apellido";
+          return nombre.contains(query) ||
+              apellido.contains(query) ||
+              nombreCompleto.contains(query);
         })
         .take(5)
         .toList();
@@ -164,6 +174,7 @@ class _AgendarPageState extends State<AgendarPage> {
     _debounce?.cancel();
     buscarCtrl.dispose();
     costoCtrl.dispose();
+    comisionCtrl.dispose();
     anticipoCtrl.dispose();
     super.dispose();
   }
@@ -311,7 +322,7 @@ class _AgendarPageState extends State<AgendarPage> {
                     Expanded(
                       child: TextFormField(
                         controller: costoCtrl,
-                        enabled: mostrarSoloEditar,
+                        enabled: mostrarSoloEditarCosto,
                         keyboardType: TextInputType.number,
                         style: const TextStyle(fontFamily: 'Quicksand'),
                         decoration: InputDecoration(
@@ -341,7 +352,7 @@ class _AgendarPageState extends State<AgendarPage> {
                           );
                         },
                         validator: (value) {
-                          if (mostrarSoloEditar == false) {
+                          if (mostrarSoloEditarCosto == false) {
                             return null;
                           } else {
                             if (value == null || value.trim().isEmpty) {
@@ -372,11 +383,91 @@ class _AgendarPageState extends State<AgendarPage> {
                           ),
                           onPressed: () {
                             setState(() {
-                              mostrarSoloEditar = !mostrarSoloEditar;
-                              if (mostrarSoloEditar == false) {
+                              mostrarSoloEditarCosto = !mostrarSoloEditarCosto;
+                              if (mostrarSoloEditarCosto == false) {
                                 estaVacioCosto = false;
                               } else {
                                 estaVacioCosto = true;
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: comisionCtrl,
+                        enabled: mostrarSoloEditarComision,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(fontFamily: 'Quicksand'),
+                        decoration: InputDecoration(
+                          labelText: 'Comisión del servicio',
+                          prefixIcon: Icon(
+                            Icons.attach_money,
+                            color:
+                                estaVacioComision
+                                    ? Colors.redAccent
+                                    : Colors.green,
+                          ),
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                          ThousandsFormatter(),
+                        ],
+                        onChanged: (value) {
+                          String clean = value.replaceAll(',', '');
+                          setState(
+                            () =>
+                                estaVacioComision =
+                                    clean.isEmpty || clean == "0",
+                          );
+                        },
+                        validator: (value) {
+                          if (mostrarSoloEditarComision == false) {
+                            return null;
+                          } else {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Agrega la comisión";
+                            }
+                            double comision =
+                                double.tryParse(value.replaceAll(',', '')) ??
+                                0.0;
+                            if (comision <= 0) {
+                              return "Agrega una comisión válida";
+                            }
+                            return null;
+                          }
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: SizedBox(
+                        height: 35,
+                        width: 35,
+                        child: IconButton(
+                          iconSize: 18,
+                          splashRadius: 14,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            Icons.edit,
+                            color: const Color(0xFF204c6c),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              mostrarSoloEditarComision =
+                                  !mostrarSoloEditarComision;
+                              if (mostrarSoloEditarComision == false) {
+                                estaVacioComision = false;
+                              } else {
+                                estaVacioComision = true;
                               }
                             });
                           },
@@ -568,6 +659,7 @@ class _AgendarPageState extends State<AgendarPage> {
                             precioPagado: anticipoCtrl.text,
                             pagoMetodo: metodoPago!,
                             observaciones: observacionesCtrl.text,
+                            comision: comisionCtrl.text,
                           );
                         }
                       },

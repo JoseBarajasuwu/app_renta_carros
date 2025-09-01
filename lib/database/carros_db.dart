@@ -7,7 +7,8 @@ void importCarrosTabla() {
       NombreCarro TEXT NOT NULL,
       Anio INTEGER NOT NULL,
       Placas TEXT NOT NULL,
-      Costo REAL NOT NULL
+      Costo REAL NOT NULL,
+      Comision REAL NOT NULL
     );
   ''');
 }
@@ -18,10 +19,11 @@ class CarroDAO {
     required int anio,
     required String placas,
     required double costo,
+    required double comision,
   }) {
     DatabaseHelper().db.execute(
-      'INSERT INTO Carro (NombreCarro, Anio, Placas, Costo) VALUES (?, ?, ?, ?)',
-      [nombreCarro, anio, placas, costo],
+      'INSERT INTO Carro (NombreCarro, Anio, Placas, Costo, Comision) VALUES (?, ?, ?, ?, ?)',
+      [nombreCarro, anio, placas, costo, comision],
     );
   }
 
@@ -32,8 +34,10 @@ class CarroDAO {
       NombreCarro,
       Anio,
       Placas,
-      Costo
+      Costo,
+      Comision
      FROM Carro
+      ORDER BY NombreCarro DESC
 ''');
     // Construir lista de mapas
     return result.map((row) {
@@ -43,6 +47,7 @@ class CarroDAO {
         'Anio': row['Anio'],
         'Placas': row['Placas'],
         'Costo': row['Costo'],
+        'Comision': row['Comision'],
       };
     }).toList();
   }
@@ -51,7 +56,8 @@ class CarroDAO {
     final result = DatabaseHelper().db.select(
       '''
     SELECT
-      Costo
+      Costo,
+      Comision
      FROM Carro
      WHERE
       CarroID = ?
@@ -59,7 +65,7 @@ class CarroDAO {
       [carroID],
     );
     return result.map((row) {
-      return {'Costo': row['Costo']};
+      return {'Costo': row['Costo'], 'Comision': row['Comision']};
     }).toList();
   }
 
@@ -69,10 +75,11 @@ class CarroDAO {
     required int anio,
     required String placas,
     required double costo,
+    required double comision,
   }) {
     DatabaseHelper().db.execute(
-      'UPDATE Carro SET NombreCarro = ?, Anio = ?, Placas = ?, Costo = ? WHERE CarroID = ?',
-      [nombreCarro, anio, placas, costo, carroID],
+      'UPDATE Carro SET NombreCarro = ?, Anio = ?, Placas = ?, Costo = ?, Comision= ?  WHERE CarroID = ?',
+      [nombreCarro, anio, placas, costo, comision, carroID],
     );
   }
 

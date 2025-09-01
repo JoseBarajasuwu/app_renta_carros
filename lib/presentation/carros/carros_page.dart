@@ -19,6 +19,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
   TextEditingController placasController = TextEditingController();
   TextEditingController anioController = TextEditingController();
   TextEditingController costoController = TextEditingController();
+  TextEditingController comisionController = TextEditingController();
   TextEditingController buscarController = TextEditingController();
 
   int? indexEditando;
@@ -39,8 +40,17 @@ class _VehiculosPageState extends State<VehiculosPage> {
     int? anio = int.tryParse(anioController.text.trim()) ?? 0;
     double costo =
         double.tryParse(costoController.text.replaceAll(',', '')) ?? 0.0;
+    double comision =
+        double.tryParse(comisionController.text.replaceAll(',', '')) ?? 0.0;
 
-    if (nombre.isEmpty || placas.isEmpty || anio == 0 || costo == 0) return;
+    if (nombre.isEmpty ||
+        placas.isEmpty ||
+        anio <= 0 ||
+        costo <= 0 ||
+        comision <= 0) {
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
@@ -50,6 +60,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
         anio: anio,
         placas: placas,
         costo: costo,
+        comision: comision,
       );
     } else {
       CarroDAO.actualizar(
@@ -58,6 +69,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
         anio: anio,
         placas: placas,
         costo: costo,
+        comision: comision,
       );
       indexEditando = null;
     }
@@ -65,6 +77,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     placasController.clear();
     anioController.clear();
     costoController.clear();
+    comisionController.clear();
     await cargaCarros();
   }
 
@@ -74,6 +87,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     required String placa,
     required String anio,
     required double costo,
+    required double comision,
   }) {
     setState(() {
       indexEditando = carroID;
@@ -82,6 +96,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     placasController.text = placa;
     anioController.text = anio;
     costoController.text = costo.toString();
+    comisionController.text = comision.toString();
   }
 
   void eliminarVehiculo(int index) async {
@@ -91,6 +106,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
       placasController.clear();
       anioController.clear();
       costoController.clear();
+      comisionController.clear();
       setState(() {
         indexEditando = null;
       });
@@ -126,6 +142,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
     placasController.dispose();
     anioController.dispose();
     costoController.dispose();
+    comisionController.dispose();
     buscarController.dispose();
     super.dispose();
   }
@@ -185,6 +202,8 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                             vehiculosFiltrados[index]["Placas"];
                                         double costo =
                                             vehiculosFiltrados[index]["Costo"];
+                                        double comision =
+                                            vehiculosFiltrados[index]["Comision"];
                                         return Column(
                                           children: [
                                             ListTile(
@@ -203,32 +222,79 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                                   ),
                                                 );
                                               },
-                                              titleTextStyle: const TextStyle(
-                                                fontSize: 18,
-                                                fontFamily: 'Quicksand',
-                                                color: Colors.black,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              subtitleTextStyle: TextStyle(
-                                                fontFamily: 'Quicksand',
-                                                color: Colors.black,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
                                               title: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
+                                                  // Nombre del carro
                                                   Text(
                                                     nombreCarro,
-                                                    maxLines: 5,
-                                                    softWrap: true,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: 'Quicksand',
+                                                      color: Colors.black,
+                                                    ),
                                                   ),
-                                                  Text(anio),
-                                                  Text(costo.toString()),
+                                                  const SizedBox(height: 8),
+
+                                                  // Año y Costo
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        "Año: $anio",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontFamily:
+                                                              'Quicksand',
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 16),
+                                                      Text(
+                                                        "Costo: \$${costo.toString()}",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontFamily:
+                                                              'Quicksand',
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 4),
+
+                                                  // Comisión y Placa
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        "Comisión: \$${comision.toString()}",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontFamily:
+                                                              'Quicksand',
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 16),
+                                                      Text(
+                                                        "Placa: $placa",
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontFamily:
+                                                              'Quicksand',
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ],
                                               ),
 
-                                              subtitle: Text(placa),
                                               trailing: Wrap(
                                                 spacing: 12,
                                                 children: [
@@ -245,6 +311,7 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                                           placa: placa,
                                                           anio: anio,
                                                           costo: costo,
+                                                          comision: comision,
                                                         ),
                                                   ),
                                                   IconButton(
@@ -399,6 +466,35 @@ class _VehiculosPageState extends State<VehiculosPage> {
                                     ) ??
                                     0.0;
                                 if (costo <= 0) return "Agrega un costo válido";
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: comisionController,
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(fontFamily: 'Quicksand'),
+                              decoration: InputDecoration(
+                                labelText: 'Comisión del vehículo',
+                                border: OutlineInputBorder(),
+                              ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(6),
+                                ThousandsFormatter(),
+                              ],
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Agrega la comisión";
+                                }
+                                double comision =
+                                    double.tryParse(
+                                      value.replaceAll(',', ''),
+                                    ) ??
+                                    0.0;
+                                if (comision <= 0) {
+                                  return "Agrega una comisión válida";
+                                }
                                 return null;
                               },
                             ),

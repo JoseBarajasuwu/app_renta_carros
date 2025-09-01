@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:renta_carros/database/calendario_db.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -25,7 +26,8 @@ class _EventoPageState extends State<EventoPage>
 
   late AnimationController _animController;
   late Animation<Offset> _slideAnim;
-
+  int? indexEditando;
+  List<Map<String, dynamic>> eventosFiltrados = [];
   @override
   void initState() {
     super.initState();
@@ -53,7 +55,6 @@ class _EventoPageState extends State<EventoPage>
     setState(() {
       _diaParaEditar = dia;
       _mostrarFormulario = true;
-      _descripcionController.clear();
     });
     _animController.forward();
   }
@@ -63,6 +64,8 @@ class _EventoPageState extends State<EventoPage>
       setState(() {
         _mostrarFormulario = false;
         _selectedDay = null;
+        indexEditando = null;
+        _descripcionController.clear();
       });
     });
   }
@@ -72,13 +75,25 @@ class _EventoPageState extends State<EventoPage>
       return;
     }
     String fechaFormateada = formatoFechaHora.format(_diaParaEditar!);
-    CalendarioDAO.insentarEvento(
-      descripcion: _descripcionController.text.trim(),
-      fechaRegistro: fechaFormateada,
-      estatus: null,
-    );
+
+    if (indexEditando == null) {
+      CalendarioDAO.insentarEvento(
+        descripcion: _descripcionController.text.trim(),
+        fechaRegistro: fechaFormateada,
+        estatus: null,
+      );
+    } else {
+      CalendarioDAO.actualizarEvento(
+        calendarioID: indexEditando!,
+        descripcion: _descripcionController.text.trim(),
+        fechaRegistro: fechaFormateada,
+        estatus: null,
+      );
+    }
+
     cargaEventoDelDia();
     setState(() {
+      indexEditando = null;
       _selectedDay = _diaParaEditar;
       _descripcionController.clear();
     });
@@ -90,44 +105,68 @@ class _EventoPageState extends State<EventoPage>
     cargaEventoDelDia();
   }
 
-  void editarEvento({required int calendarioID, required String descripcion}) {
-    String fechaFormateada = formatoFechaHora.format(_diaParaEditar!);
-    CalendarioDAO.actualizarEvento(calendarioID: calendarioID, descripcion: descripcion, fechaRegistro: fechaFormateada, estatus: null);
-    cargaEventoDelDia();
-  }
   void cargaEventoDelDia() async {
     DateTime hoy = DateTime.now();
     setState(() {
       _selectedDay = hoy;
     });
     final resultado = await CalendarioDAO.obtenerEventos();
-    setState(() {
-      _eventos = resultado;
-      _eventos
-        .where(
-          (e) =>
-              e['FechaRegistro'] != null &&
-              isSameDay(formatoFechaHora.parse(e['FechaRegistro']), _selectedDay!),
-        )
-        .toList();
-    });
-    // _eventosDelDia();
+    _eventos = resultado;
+    filtroEventos(_selectedDay);
   }
 
-  // List<Map<String, dynamic>> _eventosDelDia() {
-  //   if (_selectedDay == null) return [];
-  //   print(isSameDay(formatoFechaHora.parse(_eventos[0]['FechaRegistro']), _selectedDay!));
-  //   print(_eventos[0]['FechaRegistro']);
-  //   print(_selectedDay);
-  //   return _eventos
-  //       .where(
-  //         (e) =>
-  //             e['FechaRegistro'] != null &&
-  //             isSameDay(formatoFechaHora.parse(e['FechaRegistro']), _selectedDay!),
-  //       )
-  //       .toList();
-  // }
+  filtroEventos(DateTime? selectedDay) async {
+    setState(() {
+      eventosFiltrados =
+          _eventos.where((e) {
+            if (e['FechaRegistro'] == null) return false;
 
+            final fechaEvento = formatoFechaHora.parse(e['FechaRegistro']);
+            return isSameDay(fechaEvento, selectedDay);
+          }).toList();
+    });
+  }
+
+  Future<TimeOfDay?> _pickTime(BuildContext context, String label) async {
+    return await showTimePicker(
+      context: context,
+      initialEntryMode: TimePickerEntryMode.input,
+      cancelText: "Cancelar",
+      confirmText: "Aceptar",
+      hourLabelText: "Hora",
+      minuteLabelText: "Minuto",
+      initialTime: TimeOfDay.now(),
+      helpText: label,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+  }
+
+  Future<void> fechaEvento(DateTime rangeStart) async {
+    final startTime = await _pickTime(context, 'Selecciona hora');
+    if (startTime == null) return;
+
+    final fullStart = DateTime(
+      rangeStart.year,
+      rangeStart.month,
+      rangeStart.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    setState(() {
+      _diaParaEditar = fullStart;
+    });
+  }
+
+  bool sameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  final formCarro = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,31 +181,15 @@ class _EventoPageState extends State<EventoPage>
                   padding: const EdgeInsets.all(16.0),
                   child: TableCalendar(
                     locale: 'es_ES',
-                    firstDay: DateTime.utc(2020, 1, 1),
+                    firstDay: DateTime.utc(2024, 1, 1),
                     lastDay: DateTime.utc(2035, 12, 31),
                     focusedDay: _focusedDay,
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     onDaySelected: (selectedDay, focusedDay) {
+                      filtroEventos(selectedDay);
                       _abrirFormulario(selectedDay);
                     },
-                    // calendarBuilders: CalendarBuilders(
-                    //   todayBuilder: (context, day, focusedDay) {
-                    //     return GestureDetector(
-                    //       onSecondaryTap: () => _abrirFormulario(day),
-                    //       child: Container(
-                    //         decoration: const BoxDecoration(
-                    //           color: Color(0xFF204c6c),
-                    //           shape: BoxShape.circle,
-                    //         ),
-                    //         alignment: Alignment.center,
-                    //         child: Text(
-                    //           '${day.day}',
-                    //           style: const TextStyle(color: Colors.white),
-                    //         ),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
+
                     calendarFormat: CalendarFormat.month,
                     availableCalendarFormats: const {
                       CalendarFormat.month: 'Mes',
@@ -192,48 +215,59 @@ class _EventoPageState extends State<EventoPage>
                     color: Color(0xFFbcc9d3),
                     width: double.infinity,
                     child:
-                        _eventos.isEmpty
-                            ? const Center(child: Text('No hay eventos'))
+                        eventosFiltrados.isEmpty
+                            ? const SizedBox()
                             : ListView.builder(
-                              itemCount: _eventos.length,
+                              itemCount: eventosFiltrados.length,
                               itemBuilder: (context, index) {
-                                final evento = _eventos[index];
+                                final evento = eventosFiltrados[index];
+
                                 return ListTile(
-                                  trailing: Row(
+                                  trailing: Wrap(
+                                    spacing: 12,
                                     children: [
                                       IconButton(
-                                        iconSize: 18,
-                                        splashRadius: 14,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        onPressed: () {},
-                                        icon: const Icon(Icons.edit),
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Color(0xFF204c6c),
+                                        ),
+                                        onPressed: () {
+                                          final fecha = formatoFechaHora.parse(
+                                            evento["FechaRegistro"],
+                                          );
+                                          setState(() {
+                                            indexEditando =
+                                                evento["CalendarioID"];
+                                            _descripcionController.text =
+                                                evento["Descripcion"];
+                                          });
+
+                                          _abrirFormulario(fecha);
+                                        },
                                       ),
                                       IconButton(
-                                        iconSize: 18,
-                                        splashRadius: 14,
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.redAccent,
+                                        ),
                                         onPressed: () {
-                                          showAboutDialog(context: context);
                                           showPasswordDialog(
                                             context: context,
-                                            editOrDelite: true,
                                             calendarioID:
                                                 evento['CalendarioID'],
                                             descripcion: evento['Descripcion'],
                                           );
                                         },
-                                        icon: const Icon(
-                                          Icons.close,
-                                          color: Color(0xFF204c6c),
-                                        ),
                                       ),
                                     ],
                                   ),
                                   title: Text(
-                                    '${evento['Descripcion']} - ',
-                                    // '${evento['fecha'].day}/${evento['fecha'].month}/${evento['fecha'].year}',
+                                    '${evento['Descripcion']}',
+                                    style: TextStyle(fontFamily: 'Quicksand'),
+                                  ),
+                                  subtitle: Text(
+                                    evento['FechaRegistro'],
+                                    style: TextStyle(fontFamily: 'Quicksand'),
                                   ),
                                 );
                               },
@@ -243,7 +277,6 @@ class _EventoPageState extends State<EventoPage>
               ],
             ),
           ),
-
           // Panel lateral animado a la derecha
           if (_mostrarFormulario)
             SlideTransition(
@@ -252,42 +285,97 @@ class _EventoPageState extends State<EventoPage>
                 width: 300,
                 color: Color(0XFF90a6b6),
                 padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Evento (${_diaParaEditar?.day}/${_diaParaEditar?.month}/${_diaParaEditar?.year})',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descripcionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descripción',
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: _guardarEvento,
-                          child: const Text('Guardar'),
+                child: Form(
+                  key: formCarro,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Evento ${_diaParaEditar?.year}/${_diaParaEditar?.month}/${_diaParaEditar?.day} ${_diaParaEditar?.hour.toString().padLeft(2, '0')}:${_diaParaEditar?.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Quicksand',
                         ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: _cerrarFormulario,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _descripcionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción',
+                        ),
+                        style: TextStyle(fontFamily: 'Quicksand'),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z0-9\s\$]'),
                           ),
-                          child: const Text('Cancelar'),
+                          LengthLimitingTextInputFormatter(300),
+                        ],
+                        maxLines: 7,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Agrega la descripción del evento";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_diaParaEditar != null) {
+                            fechaEvento(_diaParaEditar!);
+                          }
+                        },
+                        child: const Text(
+                          'Selecciona la hora',
+                          style: TextStyle(fontFamily: 'Quicksand'),
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          SizedBox(
+                            height: 45,
+                            child: ElevatedButton.icon(
+                              icon: Icon(
+                                indexEditando == null ? Icons.add : Icons.save,
+                              ),
+                              onPressed:
+                                  () => {
+                                    if (formCarro.currentState!.validate())
+                                      {
+                                        mostrarDialogoAgregarEvento(
+                                          context,
+                                          indexEditando,
+                                        ),
+                                      },
+                                  },
+
+                              label: Text(
+                                indexEditando == null ? 'Agregar' : 'Guardar',
+                                style: TextStyle(fontFamily: 'Quicksand'),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            height: 45,
+                            child: ElevatedButton.icon(
+                              icon: Icon(Icons.delete),
+                              onPressed: _cerrarFormulario,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              label: const Text(
+                                'Cancelar',
+                                style: TextStyle(fontFamily: 'Quicksand'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -298,7 +386,7 @@ class _EventoPageState extends State<EventoPage>
 
   void showPasswordDialog({
     required BuildContext context,
-    required bool editOrDelite,
+
     required int calendarioID,
     required String descripcion,
   }) {
@@ -312,9 +400,7 @@ class _EventoPageState extends State<EventoPage>
                 borderRadius: BorderRadius.circular(16),
               ),
               title: Text(
-                editOrDelite
-                    ? '¿Desea eliminar el evento?'
-                    : '¿Desea editar el evento?',
+                '¿Desea eliminar el evento?',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Quicksand',
@@ -343,18 +429,8 @@ class _EventoPageState extends State<EventoPage>
                         style: TextStyle(fontFamily: 'Quicksand'),
                       ),
                       onPressed: () async {
-                        switch (editOrDelite) {
-                          case true:
-                            eliminarEvento(calendarioID: calendarioID);
-                            Navigator.of(context).pop();
-                            break;
-                          case false:
-                            editarEvento(
-                              calendarioID: calendarioID,
-                              descripcion: descripcion,
-                            );
-                            break;
-                        }
+                        eliminarEvento(calendarioID: calendarioID);
+                        Navigator.of(context).pop();
                       },
                     ),
                   ],
@@ -362,6 +438,73 @@ class _EventoPageState extends State<EventoPage>
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  mostrarDialogoAgregarEvento(BuildContext context, int? clienteID) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFFbcc9d3), // color base claro
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                clienteID != null
+                    ? '¿Estás seguro de editar este evento?'
+                    : '¿Estás seguro de agregar este evento?',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Quicksand',
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF204c6c),
+              ),
+
+              onPressed: () {
+                Navigator.of(context).pop(false); // cancelar
+              },
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green,
+              ),
+              onPressed: () {
+                _guardarEvento();
+                Navigator.of(context).pop(); // confirmar
+              },
+              child: const Text(
+                'Aceptar',
+                style: TextStyle(fontFamily: 'Quicksand'),
+              ),
+            ),
+          ],
         );
       },
     );

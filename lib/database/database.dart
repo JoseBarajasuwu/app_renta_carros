@@ -25,11 +25,11 @@ class DatabaseHelper {
     _db = sqlite3.open(dbPath);
 
     if (!exists) {
-      print('Creando base de datos...');
       _crearTablas();
+      print('Creando base de datos...');
     } else {
-      importCalendarioTabla();
       print('Base de datos ya existente.');
+      runMigrations();
     }
   }
 
@@ -47,6 +47,7 @@ class DatabaseHelper {
     importCarrosTabla();
     importRentasTabla();
     importMantenimientosTabla();
+    importCalendarioTabla();
   }
 
   void dispose() {
@@ -62,5 +63,22 @@ class DatabaseHelper {
     final result = action(_db!);
     if (autoClose) dispose();
     return result;
+  }
+
+  void runMigrations() {
+    addColumnIfNotExists('Renta', 'Comision', 'REAL DEFAULT 0');
+    addColumnIfNotExists('Carro', 'Comision', 'REAL DEFAULT 0');
+  }
+
+  void addColumnIfNotExists(String table, String column, String type) {
+    final result = db.select('PRAGMA table_info($table)');
+    final exists = result.any((row) => row['name'] == column);
+
+    if (!exists) {
+      db.execute('ALTER TABLE $table ADD COLUMN $column $type');
+      print('Columna $column agregada en $table');
+    } else {
+      print('La columna $column ya existe en $table');
+    }
   }
 }

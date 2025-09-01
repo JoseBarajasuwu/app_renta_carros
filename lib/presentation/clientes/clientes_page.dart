@@ -101,15 +101,15 @@ class _ClientesPageState extends State<ClientesPage> {
   List<Map<String, dynamic>> get clientesFiltrados {
     String query = buscarController.text.toLowerCase();
     if (query.isEmpty) return lUsuarios;
-
     return lUsuarios.where((elemento) {
       String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
       String apellido = (elemento["Apellido"] ?? '').toString().toLowerCase();
       String celular = (elemento["Telefono"] ?? '').toString().toLowerCase();
-
+      String nombreCompleto = "$nombre $apellido";
       return nombre.contains(query) ||
           apellido.contains(query) ||
-          celular.contains(query);
+          celular.contains(query) ||
+          nombreCompleto.contains(query);
     }).toList();
   }
 

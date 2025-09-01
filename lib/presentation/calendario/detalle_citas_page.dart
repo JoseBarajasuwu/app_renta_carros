@@ -116,15 +116,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                               itemCount: carrosNoDisponibles.length,
                               itemBuilder: (context, index) {
                                 final estado = carrosNoDisponibles[index];
-
-                                final ocupacionTexto =
-                                    "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} hasta ${estado.fechaFin.day}/${estado.fechaFin.month}";
-
-                                final detalleHoras =
-                                    estado.horaFinOcupacion != null
-                                        ? " (Se desocupa a las ${estado.horaFinOcupacion!.format(context)})"
-                                        : "";
-
                                 return Card(
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -164,7 +155,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       RentaDAO.obtenerFechaOcupadoCarro(
                                                         carroID: estado.carroID,
                                                       );
-                                                  
+
                                                   List<DateTime> blockedDays =
                                                       convertirFechasBloqueadas(
                                                         lFecha,
@@ -186,6 +177,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                         estado.precioPagado,
                                                     observaciones:
                                                         estado.observacion,
+                                                    comision: estado.comision,
                                                     metodoPago: estado.tipoPago,
                                                   );
                                                 },
@@ -213,6 +205,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       precioTotal: 0,
                                                       precioPagado: 0,
                                                       observaciones: '',
+                                                      comision: 0,
                                                       metodoPago: '',
                                                     ),
                                               ),
@@ -220,13 +213,155 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                           ),
                                       ],
                                     ),
-                                    subtitle: Text(
-                                      ocupacionTexto + detalleHoras,
-                                      style: const TextStyle(
-                                        fontFamily: 'Quicksand',
-                                      ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (estado.ocupado)
+                                          Text(
+                                            (estado.ocupado
+                                                    ? "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} hasta ${estado.fechaFin.day}/${estado.fechaFin.month}"
+                                                    : "Disponible") +
+                                                (estado.ocupado &&
+                                                        estado.horaFinOcupacion !=
+                                                            null
+                                                    ? " (Se desocupa a las ${estado.horaFinOcupacion!.format(context)})"
+                                                    : ""),
+                                            style: const TextStyle(
+                                              fontFamily: 'Quicksand',
+                                            ),
+                                          ),
+                                        if (estado.ocupado)
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                estado.nombreCliente,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Quicksand',
+                                                ),
+                                              ),
+                                              RichText(
+                                                text: TextSpan(
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Quicksand',
+                                                  ),
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: "Total: ",
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text:
+                                                          '\$${estado.precioTotal}',
+                                                      style: const TextStyle(
+                                                        color: Colors.green,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              RichText(
+                                                text: TextSpan(
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Quicksand',
+                                                  ),
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: "Comisión: ",
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text:
+                                                          '\$${estado.comision}',
+                                                      style: const TextStyle(
+                                                        color: Colors.green,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              RichText(
+                                                text: TextSpan(
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Quicksand',
+                                                  ),
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: "Anticipo: ",
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text:
+                                                          '\$${estado.precioPagado}',
+                                                      style: const TextStyle(
+                                                        color: Colors.green,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              RichText(
+                                                text: TextSpan(
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Quicksand',
+                                                  ),
+                                                  children: [
+                                                    const TextSpan(
+                                                      text: "Resto: ",
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text: '\$${estado.resto}',
+                                                      style: const TextStyle(
+                                                        color: Colors.green,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    estado.tipoPago,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Quicksand',
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    "50%",
+                                                    style: TextStyle(
+                                                      color:
+                                                          estado.pagoMitad == 1
+                                                              ? Colors.red
+                                                              : Colors.green,
+                                                      fontFamily: 'Quicksand',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text(
+                                                estado.observacion.isEmpty
+                                                    ? "No hubo observación"
+                                                    : estado.observacion,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Quicksand',
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                      ],
                                     ),
-                                    
                                   ),
                                 );
                               },
@@ -235,9 +370,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                         ],
                       ),
                     ),
-
                     VerticalDivider(),
-
                     // 🟩 Carros disponibles para agendar
                     Expanded(
                       child: Column(
@@ -302,7 +435,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       RentaDAO.obtenerFechaOcupadoCarro(
                                                         carroID: estado.carroID,
                                                       );
-                                                  
+
                                                   List<DateTime> blockedDays =
                                                       convertirFechasBloqueadas(
                                                         lFecha,
@@ -324,6 +457,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                         estado.precioPagado,
                                                     observaciones:
                                                         estado.observacion,
+                                                    comision: estado.comision,
                                                     metodoPago: estado.tipoPago,
                                                   );
                                                 },
@@ -351,6 +485,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       precioTotal: 0,
                                                       precioPagado: 0,
                                                       observaciones: '',
+                                                      comision: 0,
                                                       metodoPago: '',
                                                     ),
                                               ),
@@ -427,7 +562,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                         color: Colors.green,
                                                       ),
                                                     ),
-                                                   ],
+                                                  ],
                                                 ),
                                               ),
                                               RichText(
@@ -539,6 +674,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
     required double precioTotal,
     required double precioPagado,
     required String observaciones,
+    required double comision,
     required String metodoPago,
   }) {
     final TextEditingController passwordController = TextEditingController();
@@ -638,6 +774,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                         observaciones: observaciones,
                                         metodoPago: metodoPago,
                                         fecha: widget.fecha,
+                                        comision: comision,
                                       ),
                                 ),
                               );

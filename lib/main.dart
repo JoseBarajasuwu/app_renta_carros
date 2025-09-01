@@ -17,13 +17,11 @@ void main() async {
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     doWhenWindowReady(() async {
-      // final screen = await getCurrentScreen();
-      // final screenFrame = screen!.visibleFrame;
-      // final screenSize = Size(screenFrame.width, screenFrame.height);
+      final screen = await getCurrentScreen();
+      final screenFrame = screen!.visibleFrame;
+      final screenSize = Size(screenFrame.width, screenFrame.height);
       appWindow.minSize = Size(800, 600);
-      // appWindow.minSize = Size(800, 600);
-      appWindow.size = Size(800, 600);
-      // appWindow.size = screenSize;
+      appWindow.size = screenSize;
       appWindow.alignment = Alignment.center;
       appWindow.title = "Renta Car";
       appWindow.show();

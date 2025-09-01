@@ -14,6 +14,7 @@ void importRentasTabla() {
       PrecioPagado REAL NOT NULL,
       TipoPago TEXT,
       Observaciones TEXT,
+      Comision REAL NOT NULL,
       FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID),
       FOREIGN KEY (CarroID) REFERENCES Carro(CarroID)
     );
@@ -30,11 +31,12 @@ class RentaDAO {
     required double precioPagado,
     required String tipoPago,
     required String observaciones,
+    required double comision,
   }) {
     DatabaseHelper().db.execute(
       '''
-      INSERT INTO Renta (ClienteID, CarroID, FechaInicio, FechaFin, PrecioTotal, PrecioPagado, TipoPago, Observaciones)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Renta (ClienteID, CarroID, FechaInicio, FechaFin, PrecioTotal, PrecioPagado, TipoPago, Observaciones, Comision)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''',
       [
         clienteID,
@@ -45,6 +47,7 @@ class RentaDAO {
         precioPagado,
         tipoPago,
         observaciones,
+        comision,
       ],
     );
   }
@@ -56,15 +59,17 @@ class RentaDAO {
     required double precioTotal,
     required double precioPagado,
     required String observaciones,
+    required double comision,
   }) {
     DatabaseHelper().db.execute(
-      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ? WHERE RentaID = ?',
+      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ?, Comision = ? WHERE RentaID = ?',
       [
         fechaInicio,
         fechaFin,
         precioTotal,
         precioPagado,
         observaciones,
+        comision,
         rentaID,
       ],
     );
@@ -78,9 +83,10 @@ class RentaDAO {
     required double precioTotal,
     required double precioPagado,
     required String observaciones,
+    required double comision,
   }) {
     DatabaseHelper().db.execute(
-      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ?, CarroID = ? WHERE RentaID = ?',
+      'UPDATE Renta SET FechaInicio = ?, FechaFin = ?, PrecioTotal = ?, PrecioPagado = ?, Observaciones = ?, CarroID = ?, Comision = ? WHERE RentaID = ?',
       [
         fechaInicio,
         fechaFin,
@@ -88,6 +94,7 @@ class RentaDAO {
         precioPagado,
         observaciones,
         carroID,
+        comision,
         rentaID,
       ],
     );
@@ -115,7 +122,8 @@ class RentaDAO {
         r.PrecioTotal,
         r.PrecioPagado,
         r.TipoPago,
-        r.Observaciones
+        r.Observaciones,
+        r.Comision
       FROM
         Carro c
       LEFT JOIN
@@ -140,6 +148,7 @@ class RentaDAO {
               'PrecioPagado': row['PrecioPagado'],
               'TipoPago': row['TipoPago'],
               'Observaciones': row['Observaciones'],
+              'Comision': row['Comision'],
             },
           )
           .toList();

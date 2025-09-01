@@ -164,6 +164,27 @@ class _DetalleCitasDescompuestoPageState
                                           ),
                                           children: [
                                             const TextSpan(
+                                              text: "Comisión: ",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '\$${estado.comision}',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Quicksand',
+                                          ),
+                                          children: [
+                                            const TextSpan(
                                               text: "Anticipo: ",
                                               style: TextStyle(
                                                 color: Colors.black,
@@ -240,6 +261,7 @@ class _DetalleCitasDescompuestoPageState
                                           estado.carroID,
                                           estado.nombreCarro,
                                           estado.precioTotal,
+                                          estado.comision,
                                         ];
                                         Navigator.pop(context, lCarro);
                                       },
