@@ -39,106 +39,151 @@ Future<void> exportHistorialDetalladoToExcel(
     bottomBorder: excel2.Border(borderStyle: excel2.BorderStyle.Thin),
   );
 
-  int row = 0;
+  int row = 1;
 
-  // Título principal
+  // ======= TÍTULO PRINCIPAL =======
   sheet.merge(
+    // excel2.CellIndex.indexByString("A$row"),
+    // excel2.CellIndex.indexByString("F$row"),
     excel2.CellIndex.indexByString("A1"),
     excel2.CellIndex.indexByString("F1"),
   );
-  sheet.cell(excel2.CellIndex.indexByString("A1"))
+  sheet.cell(excel2.CellIndex.indexByString("A$row"))
     ..value = excel2.TextCellValue("Historial de ${car.model}")
     ..cellStyle = boldBorderedCellStyle;
-  row++;
 
-  // Rentas
-  row++;
+  // ======= TOTAL COMISIÓN =======
+  row += 1;
+  final totalComision = car.rentas.fold(0.0, (sum, r) => sum + r.comision);
+  sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+    ..value = excel2.TextCellValue("TOTAL COMISIÓN")
+    ..cellStyle = boldBorderedCellStyle;
+  sheet
+      .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+      .value = excel2.DoubleCellValue(totalComision);
+
+  // ======= RENTAS =======
+  row += 2;
   sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
     ..value = excel2.TextCellValue("Rentas")
     ..cellStyle = boldBorderedCellStyle;
-  row++;
 
-  sheet.appendRow([
-    excel2.TextCellValue("FechaInicio"),
-    excel2.TextCellValue("FechaFin"),
-    excel2.TextCellValue("Precio Total"),
-    excel2.TextCellValue("Precio Pagado"),
-    excel2.TextCellValue("Tipo de Pago"),
-    excel2.TextCellValue("Observaciones"),
-  ]);
+  row++;
+  final headersRentas = [
+    "Fecha Inicio",
+    "Fecha Fin",
+    "Precio Total",
+    "Precio Pagado",
+    "Tipo de Pago",
+    "Observaciones",
+  ];
+  for (int col = 0; col < headersRentas.length; col++) {
+    sheet.cell(
+        excel2.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row),
+      )
+      ..value = excel2.TextCellValue(headersRentas[col])
+      ..cellStyle = boldBorderedCellStyle;
+  }
 
   for (var r in car.rentas) {
     row++;
-    sheet.appendRow([
-      excel2.TextCellValue(formatoFechaDinamico(r.fechaInicio)),
-      excel2.TextCellValue(formatoFechaDinamico(r.fechaFin)),
-      excel2.DoubleCellValue(r.precioTotal),
-      excel2.DoubleCellValue(r.precioPagado),
-      excel2.TextCellValue(r.tipoPago ?? ''),
-      excel2.TextCellValue(r.observaciones ?? ''),
-    ]);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+        .value = excel2.TextCellValue(formatoFechaDinamico(r.fechaInicio));
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row))
+        .value = excel2.TextCellValue(formatoFechaDinamico(r.fechaFin));
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+        .value = excel2.DoubleCellValue(r.precioTotal);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row))
+        .value = excel2.DoubleCellValue(r.precioPagado);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row))
+        .value = excel2.TextCellValue(r.tipoPago ?? '');
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row))
+        .value = excel2.TextCellValue(r.observaciones ?? '');
   }
 
-  // Totales de renta
   final totalRentas = car.rentas.fold(0.0, (sum, r) => sum + r.precioTotal);
   row++;
-  sheet.appendRow([
-    excel2.TextCellValue("TOTAL RENTAS"),
-    excel2.TextCellValue(""),
-    excel2.DoubleCellValue(totalRentas),
-    excel2.TextCellValue(""),
-    excel2.TextCellValue(""),
-    excel2.TextCellValue(""),
-  ]);
+  sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+    ..value = excel2.TextCellValue("TOTAL RENTAS")
+    ..cellStyle = boldBorderedCellStyle;
+  sheet
+      .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+      .value = excel2.DoubleCellValue(totalRentas);
 
-  // Servicios
+  // ======= SERVICIOS =======
   row += 2;
   sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
     ..value = excel2.TextCellValue("Servicios")
     ..cellStyle = boldBorderedCellStyle;
-  row++;
 
-  sheet.appendRow([
-    excel2.TextCellValue("Fecha"),
-    excel2.TextCellValue("Tipo"),
-    excel2.TextCellValue("Costo"),
-    excel2.TextCellValue("Descripción"),
-  ]);
+  row++;
+  final headersServicios = ["Fecha", "Tipo", "Costo", "Descripción"];
+  for (int col = 0; col < headersServicios.length; col++) {
+    sheet.cell(
+        excel2.CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row),
+      )
+      ..value = excel2.TextCellValue(headersServicios[col])
+      ..cellStyle = boldBorderedCellStyle;
+  }
 
   for (var s in car.serviciosDetalle) {
     row++;
-    sheet.appendRow([
-      excel2.TextCellValue(s.fecha),
-      excel2.TextCellValue(s.tipo),
-      excel2.DoubleCellValue(s.costo),
-      excel2.TextCellValue(s.descripcion ?? ''),
-    ]);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+        .value = excel2.TextCellValue(s.fecha);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row))
+        .value = excel2.TextCellValue(s.tipo);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+        .value = excel2.DoubleCellValue(s.costo);
+    sheet
+        .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: row))
+        .value = excel2.TextCellValue(s.descripcion ?? '');
   }
 
-  // Totales de servicios
   final totalServicios = car.serviciosDetalle.fold(
     0.0,
     (sum, s) => sum + s.costo,
   );
   row++;
-  sheet.appendRow([
-    excel2.TextCellValue("TOTAL SERVICIOS"),
-    excel2.TextCellValue(""),
-    excel2.DoubleCellValue(totalServicios),
-    excel2.TextCellValue(""),
-  ]);
+  sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+    ..value = excel2.TextCellValue("TOTAL SERVICIOS")
+    ..cellStyle = boldBorderedCellStyle;
+  sheet
+      .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+      .value = excel2.DoubleCellValue(totalServicios);
 
-  final bytes = excel.encode();
-  final file = File(filePath);
-  await file.writeAsBytes(bytes!);
-  // Abrir automáticamente el archivo
-  await OpenFile.open(filePath);
-  if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Color(0xFF204c6c),
-        content: Text('📁 Historial guardado en:\n$filePath'),
-      ),
-    );
+  // ======= TOTAL NETO =======
+  final totalNeto = totalRentas - totalComision - totalServicios;
+  row += 2;
+  sheet.cell(excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row))
+    ..value = excel2.TextCellValue("TOTAL NETO")
+    ..cellStyle = boldBorderedCellStyle;
+  sheet
+      .cell(excel2.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row))
+      .value = excel2.DoubleCellValue(totalNeto);
+
+  // ======= Guardar =======
+  try {
+    final bytes = excel.encode();
+    final file = File(filePath);
+    await file.writeAsBytes(bytes!);
+    await OpenFile.open(filePath);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Color(0xFF204c6c),
+          content: Text('📁 Error al abrir el archivo'),
+        ),
+      );
+    }
   }
 }

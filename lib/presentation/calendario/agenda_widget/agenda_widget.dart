@@ -16,7 +16,6 @@ class AgendarWidget extends StatefulWidget {
   final List<DateTime> diasOcupados;
   final double precioTotal;
   final double precioPagado;
-  final double comision;
   final String observaciones;
   final String metodoPago;
   final DateTime fecha;
@@ -28,7 +27,6 @@ class AgendarWidget extends StatefulWidget {
     required this.carroSeleccionado,
     required this.diasOcupados,
     required this.precioTotal,
-    required this.comision,
     required this.precioPagado,
     required this.observaciones,
     required this.metodoPago,
@@ -44,17 +42,14 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   final formDetalle = GlobalKey<FormState>();
 
   TextEditingController costoCtrl = TextEditingController();
-  TextEditingController comisionCtrl = TextEditingController();
 
   TextEditingController anticipoCtrl = TextEditingController();
   TextEditingController observacionesCtrl = TextEditingController();
 
   bool estaVacioAnticipo = true;
   bool estaVacioCosto = true;
-  bool estaVacioComision = true;
   Timer? _debounce;
   bool mostrarSoloEditarCosto = false;
-  bool mostrarSoloEditarComision = false;
   double? costoTotal;
   int? diasCompletos;
   String? fechaHoraInicio;
@@ -62,7 +57,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   int? carroIDDescompuesto;
   String? nombreCarroDescompuesto;
   double? precioTotalDescompuesto;
-  double? comisionDescompuesto;
+
   final formKey = GlobalKey<FormState>();
 
   final DateFormat formatoFechaHora = DateFormat('yyyy-MM-dd HH:mm');
@@ -70,18 +65,14 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   _validarYConfirmar({
     required double precioTotal,
     required String precioPagado,
-    required String comision,
     required String observaciones,
   }) {
     String cPrecioPagado = precioPagado.replaceAll(',', '');
     double iPrecioPagado = double.tryParse(cPrecioPagado) ?? 0.0;
-    String cComision = comision.replaceAll(',', '');
-    double iComision = double.tryParse(cComision) ?? 0.0;
 
     if (carroIDDescompuesto == null &&
         nombreCarroDescompuesto == null &&
-        precioTotalDescompuesto == null &&
-        comisionDescompuesto == null) {
+        precioTotalDescompuesto == null) {
       RentaDAO.update(
         rentaID: widget.rentaID,
         fechaInicio: "$fechaHoraInicio",
@@ -89,21 +80,18 @@ class _AgendarWidgetState extends State<AgendarWidget> {
         precioTotal: precioTotal,
         precioPagado: iPrecioPagado,
         observaciones: observaciones,
-        comision: iComision,
       );
     } else if (carroIDDescompuesto != null &&
         nombreCarroDescompuesto != null &&
-        precioTotalDescompuesto != null &&
-        comisionDescompuesto != null) {
+        precioTotalDescompuesto != null) {
       RentaDAO.updateCarroRemplazo(
         rentaID: widget.rentaID,
-        carroID: widget.carroID,
+        carroID: carroIDDescompuesto!,
         fechaInicio: "$fechaHoraInicio",
         fechaFin: "$fechaHoraFin",
         precioTotal: precioTotal,
         precioPagado: iPrecioPagado,
         observaciones: observaciones,
-        comision: iComision,
       );
     }
 
@@ -124,7 +112,14 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     List<Map<String, dynamic>> lFecha = RentaDAO.obtenerFechaOcupadoCarro(
       carroID: carroID,
     );
-    diasNoDisponibles = convertirFechasBloqueadas(lFecha);
+    var xd = RentaDAO.obtenerFechasCarro(rentaID: widget.rentaID);
+    var tempDiasNoDisponibles = convertirFechasBloqueadas(lFecha);
+
+    var tempxd = convertirFechasBloqueadas(xd);
+    diasNoDisponibles =
+        tempDiasNoDisponibles
+            .where((fecha) => !tempxd.contains(fecha))
+            .toList();
   }
 
   List<DateTime> convertirFechasBloqueadas(
@@ -164,16 +159,13 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     required int? carroID,
     required String? nombreCarro,
     required double? precioTotal,
-    required double? comision,
   }) {
     setState(() {
       carroIDDescompuesto = carroID;
       nombreCarroDescompuesto = nombreCarro;
       precioTotalDescompuesto = precioTotal;
-      comisionDescompuesto = comision;
     });
     costoCtrl.text = precioTotalDescompuesto.toString();
-    comisionCtrl.text = comisionDescompuesto.toString();
     cargaDiasOcupados();
     cargaDias();
   }
@@ -184,7 +176,6 @@ class _AgendarWidgetState extends State<AgendarWidget> {
     cargaDias();
     costoCtrl.text = widget.precioTotal.toString();
     anticipoCtrl.text = widget.precioPagado.toString();
-    comisionCtrl.text = widget.comision.toString();
     observacionesCtrl.text = widget.observaciones;
     super.initState();
   }
@@ -193,7 +184,6 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   void dispose() {
     _debounce?.cancel();
     costoCtrl.dispose();
-    comisionCtrl.dispose();
     anticipoCtrl.dispose();
     super.dispose();
   }
@@ -249,8 +239,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
 
                 if (carroIDDescompuesto != null &&
                     nombreCarroDescompuesto != null &&
-                    precioTotalDescompuesto != null &&
-                    comisionDescompuesto != null)
+                    precioTotalDescompuesto != null)
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Text(
@@ -391,86 +380,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: comisionCtrl,
-                        enabled: mostrarSoloEditarComision,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(fontFamily: 'Quicksand'),
-                        decoration: InputDecoration(
-                          labelText: 'Comisión del servicio',
-                          prefixIcon: Icon(
-                            Icons.attach_money,
-                            color:
-                                estaVacioComision
-                                    ? Colors.redAccent
-                                    : Colors.green,
-                          ),
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(6),
-                          ThousandsFormatter(),
-                        ],
-                        onChanged: (value) {
-                          String clean = value.replaceAll(',', '');
-                          setState(
-                            () =>
-                                estaVacioComision =
-                                    clean.isEmpty || clean == "0",
-                          );
-                        },
-                        validator: (value) {
-                          if (mostrarSoloEditarComision == false) {
-                            return null;
-                          } else {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Agrega la comisión";
-                            }
-                            double comision =
-                                double.tryParse(value.replaceAll(',', '')) ??
-                                0.0;
-                            if (comision <= 0) {
-                              return "Agrega una comisión válida";
-                            }
-                            return null;
-                          }
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: SizedBox(
-                        height: 35,
-                        width: 35,
-                        child: IconButton(
-                          iconSize: 18,
-                          splashRadius: 14,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            Icons.edit,
-                            color: const Color(0xFF204c6c),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              mostrarSoloEditarComision =
-                                  !mostrarSoloEditarComision;
-                              if (mostrarSoloEditarComision == false) {
-                                estaVacioComision = false;
-                              } else {
-                                estaVacioComision = true;
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
+
                 TextFormField(
                   controller: anticipoCtrl,
                   keyboardType: TextInputType.number,
@@ -600,7 +510,6 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                           _validarYConfirmar(
                             precioTotal: costoTotal!,
                             precioPagado: anticipoCtrl.text,
-                            comision: comisionCtrl.text,
                             observaciones: observacionesCtrl.text,
                           );
                         }
@@ -703,7 +612,6 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                               carroID: resultado[0],
                               nombreCarro: resultado[1],
                               precioTotal: resultado[2],
-                              comision: resultado[3],
                             );
                           }
                         }

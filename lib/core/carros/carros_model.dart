@@ -5,12 +5,14 @@ class Renta {
   final double precioPagado;
   final String? tipoPago;
   final String? observaciones;
+  final double comision;
 
   Renta({
     required this.fechaInicio,
     required this.fechaFin,
     required this.precioTotal,
     required this.precioPagado,
+    required this.comision,
     this.tipoPago,
     this.observaciones,
   });

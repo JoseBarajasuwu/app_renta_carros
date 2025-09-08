@@ -40,7 +40,8 @@ Future<void> exportToExcelWithSummaryAtEnd(
 
   for (var car in cars) {
     final totalServicios = car.services.fold(0.0, (sum, s) => sum + s.cost);
-    final gananciaNeta = car.totalRenta - totalServicios;
+    final totComiServ = car.totalComision + totalServicios;
+    final gananciaNeta = car.totalRenta - totComiServ;
 
     final modelCell = sheet.cell(
       excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
@@ -59,6 +60,18 @@ Future<void> exportToExcelWithSummaryAtEnd(
     labelRentaCell.cellStyle = borderedCellStyle;
     valueRentaCell.value = excel2.DoubleCellValue(car.totalRenta);
     valueRentaCell.cellStyle = borderedCellStyle;
+    row++;
+
+    final labelComisionCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+    );
+    final valueComisionCell = sheet.cell(
+      excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+    );
+    labelComisionCell.value = excel2.TextCellValue('Comisión');
+    labelComisionCell.cellStyle = borderedCellStyle;
+    valueComisionCell.value = excel2.DoubleCellValue(car.totalComision);
+    valueComisionCell.cellStyle = borderedCellStyle;
     row++;
 
     for (var service in car.services) {
@@ -98,14 +111,25 @@ Future<void> exportToExcelWithSummaryAtEnd(
     gananciaValueCell.value = excel2.DoubleCellValue(gananciaNeta);
     gananciaValueCell.cellStyle = borderedCellStyle;
     row++;
-
     row++; // fila vacía
   }
 
-  final bytes = excel.encode();
-  final file = File(filePath);
-  await file.writeAsBytes(bytes!);
-  await OpenFile.open(filePath);
+  // Abrir automáticamente el archivo
+  try {
+    final bytes = excel.encode();
+    final file = File(filePath);
+    await file.writeAsBytes(bytes!);
+    await OpenFile.open(filePath);
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Color(0xFF204c6c),
+          content: Text('📁 Error al abrir el archivo'),
+        ),
+      );
+    }
+  }
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

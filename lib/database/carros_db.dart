@@ -56,8 +56,7 @@ class CarroDAO {
     final result = DatabaseHelper().db.select(
       '''
     SELECT
-      Costo,
-      Comision
+      Costo 
      FROM Carro
      WHERE
       CarroID = ?
@@ -65,7 +64,7 @@ class CarroDAO {
       [carroID],
     );
     return result.map((row) {
-      return {'Costo': row['Costo'], 'Comision': row['Comision']};
+      return {'Costo': row['Costo']};
     }).toList();
   }
 

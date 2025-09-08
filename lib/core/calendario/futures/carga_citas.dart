@@ -138,7 +138,6 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
       'precioTotal': double.tryParse(row['PrecioTotal'].toString()) ?? 0,
       'precioPagado': double.tryParse(row['PrecioPagado'].toString()) ?? 0,
       'tipoPago': row['TipoPago'] ?? '',
-      'comision': double.tryParse(row['Comision'].toString()) ?? 0,
     };
 
     if (row['FechaInicio'] == null || row['FechaFin'] == null) continue;
@@ -171,7 +170,6 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           fechaInicio: inicio,
           fechaFin: fin,
           observacion: row['Observaciones'] ?? '',
-          comision: double.tryParse(row['Comision'].toString()) ?? 0,
           horaFinOcupacion: TimeOfDay(hour: fin.hour, minute: fin.minute),
         ),
       );
@@ -208,7 +206,6 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           fechaInicio: citaActiva.fechaInicio,
           fechaFin: citaActiva.fechaFin,
           observacion: citaActiva.observacion,
-          comision: citaActiva.comision,
           horaFinOcupacion: citaActiva.horaFinOcupacion,
         ),
       );
@@ -216,7 +213,6 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
       final datos = datosCarros[carroID] ?? {};
       final precioTotal = datos['precioTotal'] ?? 0.0;
       final precioPagado = datos['precioPagado'] ?? 0.0;
-      final comision = datos['comision'] ?? 0.0;
       final tipoPago = datos['tipoPago'] ?? '';
       resultado.add(
         EstadoCarro(
@@ -233,7 +229,6 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           fechaInicio: dia,
           fechaFin: dia,
           observacion: '',
-          comision: comision,
           horaFinOcupacion: null,
         ),
       );

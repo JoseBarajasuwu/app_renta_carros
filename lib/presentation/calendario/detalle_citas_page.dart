@@ -177,7 +177,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                         estado.precioPagado,
                                                     observaciones:
                                                         estado.observacion,
-                                                    comision: estado.comision,
                                                     metodoPago: estado.tipoPago,
                                                   );
                                                 },
@@ -205,7 +204,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       precioTotal: 0,
                                                       precioPagado: 0,
                                                       observaciones: '',
-                                                      comision: 0,
                                                       metodoPago: '',
                                                     ),
                                               ),
@@ -264,28 +262,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                   ],
                                                 ),
                                               ),
-                                              RichText(
-                                                text: TextSpan(
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Quicksand',
-                                                  ),
-                                                  children: [
-                                                    const TextSpan(
-                                                      text: "Comisión: ",
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text:
-                                                          '\$${estado.comision}',
-                                                      style: const TextStyle(
-                                                        color: Colors.green,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
+
                                               RichText(
                                                 text: TextSpan(
                                                   style: const TextStyle(
@@ -457,7 +434,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                         estado.precioPagado,
                                                     observaciones:
                                                         estado.observacion,
-                                                    comision: estado.comision,
                                                     metodoPago: estado.tipoPago,
                                                   );
                                                 },
@@ -485,7 +461,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       precioTotal: 0,
                                                       precioPagado: 0,
                                                       observaciones: '',
-                                                      comision: 0,
                                                       metodoPago: '',
                                                     ),
                                               ),
@@ -674,7 +649,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
     required double precioTotal,
     required double precioPagado,
     required String observaciones,
-    required double comision,
     required String metodoPago,
   }) {
     final TextEditingController passwordController = TextEditingController();
@@ -774,7 +748,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                         observaciones: observaciones,
                                         metodoPago: metodoPago,
                                         fecha: widget.fecha,
-                                        comision: comision,
                                       ),
                                 ),
                               );

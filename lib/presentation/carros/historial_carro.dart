@@ -42,10 +42,12 @@ class _HistorialPageState extends State<HistorialCarroPage> {
 
     final rentasRows = DatabaseHelper().db.select(
       '''
-  SELECT FechaInicio, FechaFin, PrecioTotal, PrecioPagado, TipoPago, Observaciones
-  FROM Renta
-  WHERE substr(FechaInicio,1,7)=? AND CarroID = ?
-  ORDER BY FechaInicio;
+  SELECT R.FechaInicio, R.FechaFin, R.PrecioTotal, R.PrecioPagado, 
+         R.TipoPago, R.Observaciones, C.Comision as comision
+  FROM Renta R
+  JOIN Carro C ON R.CarroID = C.CarroID
+  WHERE substr(R.FechaInicio,1,7)=? AND R.CarroID = ?
+  ORDER BY R.FechaInicio;
   ''',
       [month, widget.carroID],
     );
@@ -69,6 +71,8 @@ class _HistorialPageState extends State<HistorialCarroPage> {
             precioPagado: (r['PrecioPagado'] as num).toDouble(),
             tipoPago: r['TipoPago'] as String?,
             observaciones: r['Observaciones'] as String?,
+            comision:
+                (r['comision'] as num).toDouble(), // <-- Aquí ya lo tienes
           );
         }).toList();
 
@@ -156,6 +160,10 @@ class _HistorialPageState extends State<HistorialCarroPage> {
                             'Precio pagado: \$${formatter.format(r.precioPagado)}',
                             style: const TextStyle(fontFamily: 'Quicksand'),
                           ),
+                          Text(
+                            'Comisión: ${r.comision}',
+                            style: const TextStyle(fontFamily: 'Quicksand'),
+                          ),
                           if (r.tipoPago != null && r.tipoPago!.isNotEmpty)
                             Text(
                               "Tipo de pago: ${r.tipoPago}",
@@ -216,26 +224,6 @@ class _HistorialPageState extends State<HistorialCarroPage> {
                       ),
                     ),
                   ),
-                  // Card(
-                  //   margin: const EdgeInsets.symmetric(vertical: 6),
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(12),
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Text(
-                  //           "${s.fecha} - ${s.tipo}",
-                  //           style: const TextStyle(fontWeight: FontWeight.bold),
-                  //         ),
-                  //         const SizedBox(height: 4),
-                  //         Text("Costo: \$${formatter.format(s.costo)}"),
-                  //         if (s.descripcion != null &&
-                  //             s.descripcion!.trim().isNotEmpty)
-                  //           Text("Descripción: ${s.descripcion}"),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                 ),
               ],
             ),

@@ -45,16 +45,42 @@ class _HistorialPageState extends State<HistorialPage> {
   Future<List<Car>> fetchCarData(String month) async {
     final resumenRows = DatabaseHelper().db.select(
       '''
-      SELECT 
-        C.CarroID AS id,
-        C.NombreCarro AS model,
-        IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
-        IFNULL(SUM(R.Comision), 0) AS totalComision,
-        IFNULL(SUM(M.Costo), 0) AS totalServicios
-      FROM Carro C
-      LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
-      LEFT JOIN Mantenimiento M ON C.CarroID = M.CarroID AND substr(M.FechaRegistro,1,7)=?
-      GROUP BY C.CarroID, C.NombreCarro;
+SELECT 
+  C.CarroID AS id,
+  C.NombreCarro AS model,
+  IFNULL(R.totalRenta, 0) AS totalRenta,
+  IFNULL(R.numRentas, 0) * C.Comision AS totalComision,
+  IFNULL(M.totalServicios, 0) AS totalServicios
+FROM Carro C
+LEFT JOIN (
+    SELECT 
+      CarroID,
+      SUM(PrecioTotal) AS totalRenta,
+      COUNT(*) AS numRentas
+    FROM Renta
+    WHERE substr(FechaInicio,1,7) = ?
+    GROUP BY CarroID
+) R ON C.CarroID = R.CarroID
+LEFT JOIN (
+    SELECT 
+      CarroID,
+      SUM(Costo) AS totalServicios
+    FROM Mantenimiento
+    WHERE substr(FechaRegistro,1,7) = ?
+    GROUP BY CarroID
+) M ON C.CarroID = M.CarroID;
+
+
+      // SELECT 
+      //   C.CarroID AS id,
+      //   C.NombreCarro AS model,
+      //   IFNULL(SUM(R.PrecioTotal), 0) AS totalRenta,
+      //   IFNULL(SUM(R.Comision), 0) AS totalComision,
+      //   IFNULL(SUM(M.Costo), 0) AS totalServicios
+      // FROM Carro C
+      // LEFT JOIN Renta R ON C.CarroID = R.CarroID AND substr(R.FechaInicio,1,7)=?
+      // LEFT JOIN Mantenimiento M ON C.CarroID = M.CarroID AND substr(M.FechaRegistro,1,7)=?
+      // GROUP BY C.CarroID, C.NombreCarro;
       ''',
       [month, month],
     );
