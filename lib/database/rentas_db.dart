@@ -113,26 +113,43 @@ class RentaDAO {
     return await DatabaseHelper().useDb((db) {
       final result = db.select(
         '''
-      SELECT
-        r.RentaID,
-        c.CarroID,
-        cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
-        c.NombreCarro || ' ' || c.Anio || ' ' || c.Placas AS NombreCarro,
-        r.FechaInicio,
-        r.FechaFin,
-        r.PrecioTotal,
-        r.PrecioPagado,
-        r.TipoPago,
-        r.Observaciones 
-      FROM
-        Carro c
-      LEFT JOIN
-        Renta r ON c.CarroID = r.CarroID
-      LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
-        AND DATE(?) BETWEEN DATE(r.FechaInicio) AND DATE(r.FechaFin)
+        SELECT
+            r.RentaID,
+            c.CarroID,
+            cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
+            c.NombreCarro || ' ' || c.Anio || ' ' || c.Placas AS NombreCarro,
+            r.FechaInicio,
+            r.FechaFin,
+            r.PrecioTotal,
+            r.PrecioPagado,
+            r.TipoPago,
+            r.Observaciones 
+        FROM Carro c
+        LEFT JOIN Renta r ON c.CarroID = r.CarroID
+        LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
+        WHERE DATE(?) BETWEEN DATE(r.FechaInicio) AND DATE(r.FechaFin)
+        UNION ALL
+        SELECT
+            NULL AS RentaID,
+            c.CarroID,
+            NULL AS NombreCompleto,
+            c.NombreCarro || ' ' || c.Anio || ' ' || c.Placas AS NombreCarro,
+            NULL AS FechaInicio,
+            NULL AS FechaFin,
+            NULL AS PrecioTotal,
+            NULL AS PrecioPagado,
+            NULL AS TipoPago,
+            NULL AS Observaciones
+        FROM Carro c
+        WHERE c.CarroID NOT IN (
+            SELECT c2.CarroID
+            FROM Carro c2
+            LEFT JOIN Renta r2 ON c2.CarroID = r2.CarroID
+            WHERE DATE(?) BETWEEN DATE(r2.FechaInicio) AND DATE(r2.FechaFin)
+        )
         ORDER BY NombreCarro;
-      ''',
-        [fecha],
+        ''',
+        [fecha, fecha, fecha],
       );
 
       return result
