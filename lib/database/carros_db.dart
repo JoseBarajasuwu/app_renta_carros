@@ -86,5 +86,8 @@ class CarroDAO {
     DatabaseHelper().db.execute('DELETE FROM Carro WHERE CarroID = ?', [
       carroID,
     ]);
+    DatabaseHelper().db.execute('DELETE FROM Renta WHERE CarroID = ?', [
+      carroID,
+    ]);
   }
 }

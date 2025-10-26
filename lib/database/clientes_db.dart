@@ -96,6 +96,9 @@ class ClienteDAO {
   }
 
   static void eliminar({required int clienteID}) {
+    DatabaseHelper().db.execute('DELETE FROM Renta WHERE ClienteID = ?', [
+      clienteID,
+    ]);
     DatabaseHelper().db.execute('DELETE FROM Cliente WHERE ClienteID = ?', [
       clienteID,
     ]);

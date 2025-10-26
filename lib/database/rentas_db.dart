@@ -101,6 +101,12 @@ class RentaDAO {
     ]);
   }
 
+  static Future<void> eliminarRepetidos({required int rentaID}) async {
+    DatabaseHelper().db.execute('DELETE FROM Renta WHERE RentaID = ?', [
+      rentaID,
+    ]);
+  }
+
   static Future<List<Map<String, dynamic>>> obtenerHistorialCarros({
     required String fecha,
   }) async {
@@ -111,7 +117,7 @@ class RentaDAO {
         r.RentaID,
         c.CarroID,
         cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
-        c.NombreCarro,
+        c.NombreCarro || ' ' || c.Anio || ' ' || c.Placas AS NombreCarro,
         r.FechaInicio,
         r.FechaFin,
         r.PrecioTotal,

@@ -139,9 +139,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
       'precioPagado': double.tryParse(row['PrecioPagado'].toString()) ?? 0,
       'tipoPago': row['TipoPago'] ?? '',
     };
-
     if (row['FechaInicio'] == null || row['FechaFin'] == null) continue;
-
     final inicio = DateTime.parse(row['FechaInicio']);
     final fin = DateTime.parse(row['FechaFin']);
 
@@ -150,29 +148,36 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
 
     if ((d.isAtSameMomentAs(inicioSoloFecha) || d.isAfter(inicioSoloFecha)) &&
         (d.isAtSameMomentAs(finSoloFecha) || d.isBefore(finSoloFecha))) {
-      citasDelDia.add(
-        CitaCarro(
-          rentaID: row['RentaID'],
-          carroID: carroID,
-          nombreCliente: row['NombreCompleto'],
-          nombreCarro: row['NombreCarro'],
-          precioTotal: double.tryParse(row['PrecioTotal'].toString()) ?? 0,
-          precioPagado: double.tryParse(row['PrecioPagado'].toString()) ?? 0,
-          pagoMitad:
-              (double.tryParse(row['PrecioPagado'].toString()) ?? 0) <
-                      (double.tryParse(row['PrecioTotal'].toString()) ?? 0) / 2
-                  ? 1
-                  : 0,
-          resto:
-              (double.tryParse(row['PrecioTotal'].toString()) ?? 0) -
-              (double.tryParse(row['PrecioPagado'].toString()) ?? 0),
-          tipoPago: row['TipoPago'] ?? '',
-          fechaInicio: inicio,
-          fechaFin: fin,
-          observacion: row['Observaciones'] ?? '',
-          horaFinOcupacion: TimeOfDay(hour: fin.hour, minute: fin.minute),
-        ),
-      );
+      if (row['NombreCompleto'] != null) {
+        citasDelDia.add(
+          CitaCarro(
+            rentaID: row['RentaID'],
+            carroID: carroID,
+            nombreCliente: row['NombreCompleto'] ?? "",
+            nombreCarro: row['NombreCarro'] ?? "",
+            precioTotal: double.tryParse(row['PrecioTotal'].toString()) ?? 0,
+            precioPagado: double.tryParse(row['PrecioPagado'].toString()) ?? 0,
+            pagoMitad:
+                (double.tryParse(row['PrecioPagado'].toString()) ?? 0) <
+                        (double.tryParse(row['PrecioTotal'].toString()) ?? 0) /
+                            2
+                    ? 1
+                    : 0,
+            resto:
+                (double.tryParse(row['PrecioTotal'].toString()) ?? 0) -
+                (double.tryParse(row['PrecioPagado'].toString()) ?? 0),
+            tipoPago: row['TipoPago'] ?? '',
+            fechaInicio: inicio,
+            fechaFin: fin,
+            observacion: row['Observaciones'] ?? '',
+            horaFinOcupacion: TimeOfDay(hour: fin.hour, minute: fin.minute),
+          ),
+        );
+      } else {
+        if (row['RentaID'] != null && row['RentaID'] != 0) {
+          await RentaDAO.eliminarRepetidos(rentaID: row['RentaID']);
+        }
+      }
     }
   }
 

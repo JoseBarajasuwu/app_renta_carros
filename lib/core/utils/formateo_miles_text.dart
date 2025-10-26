@@ -10,9 +10,15 @@ class ThousandsFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     // Quitar comas y ceros a la izquierda (sin eliminar si es solo "0")
-    String rawText = newValue.text
-        .replaceAll(',', '')
-        .replaceFirst(RegExp(r'^0+'), '');
+    final validNumber = RegExp(r'^(0|[1-9][0-9]*)$');
+    String rawText = "";
+    if (validNumber.hasMatch(newValue.text)) {
+      rawText = newValue.text.replaceAll(',', '');
+      // es válido
+    } else {
+      // no es válido
+      rawText = "";
+    }
 
     if (rawText.isEmpty) {
       return const TextEditingValue(

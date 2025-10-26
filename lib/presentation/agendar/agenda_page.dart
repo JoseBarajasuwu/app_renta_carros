@@ -137,19 +137,33 @@ class _AgendarPageState extends State<AgendarPage> {
 
   List<Map<String, dynamic>> get clientesFiltrados {
     String query = buscarCtrl.text.toLowerCase();
-    if (query.isEmpty) return lUsuarios;
-    return lUsuarios
-        .where((elemento) {
-          String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
-          String apellido =
-              (elemento["Apellido"] ?? '').toString().toLowerCase();
-          String nombreCompleto = "$nombre $apellido";
-          return nombre.contains(query) ||
-              apellido.contains(query) ||
-              nombreCompleto.contains(query);
-        })
-        .take(5)
-        .toList();
+    if (query.isEmpty) {
+      return lUsuarios
+          .where((elemento) {
+            String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
+            String apellido =
+                (elemento["Apellido"] ?? '').toString().toLowerCase();
+            String nombreCompleto = "$nombre $apellido";
+            return nombre.contains("*") ||
+                apellido.contains("*") ||
+                nombreCompleto.contains("*");
+          })
+          .take(5)
+          .toList();
+    } else {
+      return lUsuarios
+          .where((elemento) {
+            String nombre = (elemento["Nombre"] ?? '').toString().toLowerCase();
+            String apellido =
+                (elemento["Apellido"] ?? '').toString().toLowerCase();
+            String nombreCompleto = "$nombre $apellido";
+            return nombre.contains(query) ||
+                apellido.contains(query) ||
+                nombreCompleto.contains(query);
+          })
+          .take(5)
+          .toList();
+    }
   }
 
   @override
@@ -416,10 +430,20 @@ class _AgendarPageState extends State<AgendarPage> {
                     if (value == null || value.trim().isEmpty) {
                       return "Agrega un anticipo";
                     }
-                    final double anticipo =
-                        double.tryParse(value.replaceAll(',', '')) ?? 0.0;
-                    if (anticipo <= 0) return "Agrega un anticipo válido";
-                    return null;
+
+                    // quitamos comas para validar números grandes
+                    final cleaned = value.replaceAll(',', '');
+
+                    // regex para validar solo enteros o "0"
+                    final regex = RegExp(r'^(0|[1-9][0-9]*)$');
+                    if (!regex.hasMatch(cleaned)) {
+                      return "Agrega un anticipo válido";
+                    }
+
+                    final double anticipo = double.tryParse(cleaned) ?? 0.0;
+                    if (anticipo < 0) return "Agrega un anticipo válido";
+
+                    return null; // válido
                   },
                 ),
                 Align(
