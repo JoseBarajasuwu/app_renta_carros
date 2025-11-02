@@ -149,7 +149,7 @@ class RentaDAO {
         )
         ORDER BY NombreCarro;
         ''',
-        [fecha, fecha, fecha],
+        [fecha, fecha],
       );
 
       return result

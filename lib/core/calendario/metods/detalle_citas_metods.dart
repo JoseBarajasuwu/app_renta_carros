@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:renta_carros/core/calendario/model/detalle_citas.dart';
 
 Icon getIconoMetodoPago(String? metodo) {
   switch (metodo) {
@@ -43,4 +44,29 @@ bool puedeAgendar(
 
   // Caso por defecto (seguridad)
   return true;
+}
+
+List<List<EstadoCarro>> comparar(
+  List<EstadoCarro> lCarroDispinble,
+  List<EstadoCarro> lCarrosNoDisponibles,
+) {
+  // Buscar los que se repiten (mismo carroID en ambas listas)
+  var repetidos =
+      lCarroDispinble
+          .where(
+            (disp) => lCarrosNoDisponibles.any(
+              (noDisp) => noDisp.carroID == disp.carroID,
+            ),
+          )
+          .toList();
+
+  // Mover cada repetido de disponibles a no disponibles
+  for (var carro in repetidos) {
+    // Eliminarlo de disponibles
+    lCarroDispinble.removeWhere((disp) => disp.carroID == carro.carroID);
+
+    // Agregar el objeto completo (con todos sus datos) a no disponibles
+    lCarrosNoDisponibles.add(carro);
+  }
+  return [lCarroDispinble, lCarrosNoDisponibles];
 }

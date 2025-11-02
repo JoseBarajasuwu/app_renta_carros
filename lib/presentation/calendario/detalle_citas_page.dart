@@ -74,7 +74,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                 List<EstadoCarro> estados = snapshot.data ?? [];
 
                 // Dividir en dos listas
-                final carrosDisponibles =
+                List<EstadoCarro> carrosDisponibles =
                     estados.where((estado) {
                       return !estado.ocupado ||
                           puedeAgendar(
@@ -84,7 +84,7 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                           );
                     }).toList();
 
-                final carrosNoDisponibles =
+                List<EstadoCarro> carrosNoDisponibles =
                     estados.where((estado) {
                       return estado.ocupado &&
                           !puedeAgendar(
@@ -93,7 +93,13 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                             estado.horaFinOcupacion,
                           );
                     }).toList();
+                List<List<EstadoCarro>> lCarros = comparar(
+                  carrosDisponibles,
+                  carrosNoDisponibles,
+                );
 
+                carrosDisponibles = lCarros[0];
+                carrosNoDisponibles = lCarros[1];
                 return Row(
                   children: [
                     // 🟥 Carros NO disponibles
