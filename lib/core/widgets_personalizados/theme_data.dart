@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 
 final ThemeData appTheme = ThemeData(
-  useMaterial3: false,
+  useMaterial3: true,
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
   // primaryColor: Colors.orange,
   scaffoldBackgroundColor: Colors.white,
-  // appBarTheme: const AppBarTheme(
-  //   backgroundColor: Colors.orange,
-  //   foregroundColor: Colors.white,
-  // ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: Color(0xFF204c6c),
@@ -70,8 +67,13 @@ final ThemeData appTheme = ThemeData(
   //   backgroundColor: Colors.orange,
   //   foregroundColor: Colors.white,
   // ),
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: Colors.blueAccent, // Cambia esto al color base que quieras
-    surface: Colors.white, // Fondo de los componentes como BottomNavigationBar
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
+    elevation: 0,
   ),
+  // colorScheme: ColorScheme.fromSeed(
+  //   seedColor: Colors.blueAccent, // Cambia esto al color base que quieras
+  //   surface: Colors.white, // Fondo de los componentes como BottomNavigationBar
+  // ),
 );
