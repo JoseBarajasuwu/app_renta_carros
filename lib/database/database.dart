@@ -29,7 +29,7 @@ class DatabaseHelper {
       print('Creando base de datos...');
     } else {
       print('Base de datos ya existente.');
-      // runMigrations();
+      runMigrations();
     }
   }
 
@@ -65,20 +65,20 @@ class DatabaseHelper {
     return result;
   }
 
-  // void runMigrations() {
-  //   addColumnIfNotExists('Renta', 'Comision', 'REAL DEFAULT 0');
-  //   addColumnIfNotExists('Carro', 'Comision', 'REAL DEFAULT 0');
-  // }
+  void runMigrations() {
+    addColumnIfNotExists('Renta', 'Estatus', 'INTEGER DEFAULT 0');
+    // addColumnIfNotExists('Carro', 'Comision', 'REAL DEFAULT 0');
+  }
 
-  // void addColumnIfNotExists(String table, String column, String type) {
-  //   final result = db.select('PRAGMA table_info($table)');
-  //   final exists = result.any((row) => row['name'] == column);
+  void addColumnIfNotExists(String table, String column, String type) {
+    final result = db.select('PRAGMA table_info($table)');
+    final exists = result.any((row) => row['name'] == column);
 
-  //   if (!exists) {
-  //     db.execute('ALTER TABLE $table ADD COLUMN $column $type');
-  //     print('Columna $column agregada en $table');
-  //   } else {
-  //     print('La columna $column ya existe en $table');
-  //   }
-  // }
+    if (!exists) {
+      db.execute('ALTER TABLE $table ADD COLUMN $column $type');
+      print('Columna $column agregada en $table');
+    } else {
+      print('La columna $column ya existe en $table');
+    }
+  }
 }

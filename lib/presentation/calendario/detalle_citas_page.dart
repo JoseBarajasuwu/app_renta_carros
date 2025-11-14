@@ -23,6 +23,11 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
     resetear();
   }
 
+  entregarCarro(int rentaID) async {
+    RentaDAO.carroEntregado(rentaID: rentaID);
+    resetear();
+  }
+
   resetear() {
     setState(() {
       mostrarSoloDisponibles = true;
@@ -268,7 +273,6 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                   ],
                                                 ),
                                               ),
-
                                               RichText(
                                                 text: TextSpan(
                                                   style: const TextStyle(
@@ -340,6 +344,37 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                 style: const TextStyle(
                                                   fontFamily: 'Quicksand',
                                                 ),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      // Acción del botón
+                                                    },
+                                                    child: const Text(
+                                                      "Ver Detalle",
+                                                      style: TextStyle(
+                                                        fontFamily: 'Quicksand',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      entregarCarro(
+                                                        estado.rentaID,
+                                                      );
+                                                    },
+                                                    child: const Text(
+                                                      "Entregar",
+                                                      style: TextStyle(
+                                                        fontFamily: 'Quicksand',
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),

@@ -159,6 +159,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
     if (fullEnd.isBefore(fullStart)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
+          backgroundColor: Color(0xFF204c6c),
           content: Text('La hora final no puede ser antes de la inicial.'),
         ),
       );
@@ -173,6 +174,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
       if (rangosSeSolapan(fullStart, fullEnd, inicio, fin)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
+            backgroundColor: Color(0xFF204c6c),
             content: Text(
               'El rango seleccionado (con hora) se solapa con otra renta.',
             ),
@@ -194,6 +196,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
     if (_rangeHasBlockedDays(_rangeStart!, _rangeEnd!)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
+          backgroundColor: Color(0xFF204c6c),
           content: Text(
             'El rango contiene días ocupados por otras rentas. Intenta otro.',
           ),
@@ -314,6 +317,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 if (_rangeHasBlockedDays(start, end)) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
+                      backgroundColor: Color(0xFF204c6c),
                       content: Text(
                         'Ese rango contiene días ocupados. Intenta otro.',
                       ),

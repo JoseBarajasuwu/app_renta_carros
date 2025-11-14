@@ -5,6 +5,7 @@ import 'package:renta_carros/core/historial/model/historial_model.dart';
 import 'package:renta_carros/core/utils/formateo_miles_text.dart';
 import 'package:renta_carros/database/database.dart';
 import 'package:renta_carros/database/mantenimientos_db.dart';
+import 'package:renta_carros/presentation/carros/historial_carro.dart';
 import 'package:renta_carros/presentation/historial/utils_historial.dart';
 import 'package:renta_carros/presentation/historial/widgets/info_rows.dart';
 
@@ -21,10 +22,12 @@ class _HistorialPageState extends State<HistorialPage> {
 
   // Control del formulario visible
   int _formCarroID = -1;
+  int mantenimientoID = 0;
   TextEditingController tipoController = TextEditingController();
   TextEditingController costoController = TextEditingController();
   TextEditingController descripcionController = TextEditingController();
   String fechaDeHoy = "";
+  bool isSaving = false;
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,87 @@ class _HistorialPageState extends State<HistorialPage> {
     costoController.dispose();
     descripcionController.dispose();
     super.dispose();
+  }
+
+  void eliminarServicio(int carroMantenimientoId) async {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Eliminar servicio'),
+            content: const Text('¿Estás seguro de eliminar este servicio?'),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      MantenimientoDAO.eliminarMantenimiento(
+                        carroMantenimientoId,
+                      );
+                      Navigator.pop(context);
+                      final mes = DateFormat('yyyy-MM').format(DateTime.now());
+                      setState(() {
+                        _futureCars = fetchCarData(mes);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Color(0xFF204c6c),
+                          content: Text('Servicio eliminado'),
+                        ),
+                      );
+                    },
+                    child: const Text('Eliminar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
+  }
+
+  guardarServicio(int carroID, int mantenimientoId) async {
+    setState(() => isSaving = true);
+    String fecha = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    double costo =
+        double.tryParse(costoController.text.trim().replaceAll(',', '.')) ??
+        0.0;
+    if (mantenimientoId == 0) {
+      MantenimientoDAO.insertarMantenimiento(
+        carroId: carroID,
+        fechaRegistro: fecha,
+        tipo: tipoController.text.trim(),
+        costo: costo,
+        descripcion: descripcionController.text.trim(),
+      );
+    } else {
+      MantenimientoDAO.actualizarMantenimiento(
+        mantenimientoID: mantenimientoId,
+        tipo: tipoController.text.trim(),
+        costo: costo,
+        descripcion: descripcionController.text.trim(),
+      );
+    }
+    mantenimientoID = 0;
+    tipoController.clear();
+    costoController.clear();
+    descripcionController.clear();
+    final mes = DateFormat('yyyy-MM').format(DateTime.now());
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: Color(0xFF204c6c),
+        content: Text('Servicio guardado'),
+      ),
+    );
+    setState(() {
+      _formCarroID = -1;
+      isSaving = false;
+      _futureCars = fetchCarData(mes);
+    });
   }
 
   Future<List<Car>> fetchCarData(String month) async {
@@ -87,7 +171,7 @@ LEFT JOIN (
 
     final serviciosRows = DatabaseHelper().db.select(
       '''
-      SELECT CarroID AS id, TipoServicio AS name, Costo AS cost
+      SELECT MantenimientoID, CarroID, TipoServicio, Costo, Descripcion
       FROM Mantenimiento
       WHERE substr(FechaRegistro,1,7)=?
       ORDER BY CarroID, FechaRegistro;
@@ -97,10 +181,17 @@ LEFT JOIN (
 
     final Map<int, List<Service>> serviciosMap = {};
     for (var row in serviciosRows) {
-      final int id = row['id'] as int;
+      final int carroID = row['CarroID'] as int;
       serviciosMap
-          .putIfAbsent(id, () => [])
-          .add(Service(row['name'] as String, (row['cost'] as num).toDouble()));
+          .putIfAbsent(carroID, () => [])
+          .add(
+            Service(
+              row['MantenimientoID'] as int,
+              row['TipoServicio'] as String,
+              (row['Costo'] as num).toDouble(),
+              row['Descripcion'] as String,
+            ),
+          );
     }
 
     return resumenRows.map((row) {
@@ -203,14 +294,35 @@ LEFT JOIN (
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                car.model,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Quicksand',
-                                  color: Color(0xFF204c6c),
-                                ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    car.model,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Quicksand',
+                                      color: Color(0xFF204c6c),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => HistorialCarroPage(
+                                                carroID: car.carroID,
+                                                nombreCarro: car.model,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text("Historial"),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
 
@@ -251,6 +363,7 @@ LEFT JOIN (
                                         color: const Color(0xFF204c6c),
                                       ),
                                       onPressed: () {
+                                        mantenimientoID = 0;
                                         setState(() {
                                           if (isFormVisible) {
                                             tipoController.clear();
@@ -273,35 +386,8 @@ LEFT JOIN (
                                   ),
                                 ],
                               ),
-
-                              const SizedBox(height: 4),
-                              ...car.services.map(
-                                (s) => Row(
-                                  children: [
-                                    const Text("• "),
-                                    Expanded(
-                                      child: Text(
-                                        s.name,
-                                        style: const TextStyle(
-                                          fontFamily: 'Quicksand',
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 100,
-                                      child: Text(
-                                        "\$${_formatter.format(s.cost)}",
-                                        textAlign: TextAlign.right,
-                                        style: const TextStyle(
-                                          fontFamily: 'Quicksand',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              if (isFormVisible) ...[
+                              if (isFormVisible)
+                                // 🧾 FORMULARIO DE NUEVO SERVICIO
                                 Form(
                                   key: _formKey,
                                   child: Column(
@@ -312,16 +398,16 @@ LEFT JOIN (
                                         controller: tipoController,
                                         decoration: const InputDecoration(
                                           labelText: "Nombre del Servicio",
+                                          border: OutlineInputBorder(),
                                         ),
-                                        validator: (value) {
-                                          if (value == null ||
-                                              value.trim().isEmpty) {
-                                            return 'Agrega el nombre del Servicio';
-                                          }
-                                          return null;
-                                        },
+                                        validator:
+                                            (value) =>
+                                                (value == null ||
+                                                        value.trim().isEmpty)
+                                                    ? 'Agrega el nombre del servicio'
+                                                    : null,
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
                                       TextFormField(
                                         controller: costoController,
                                         decoration: const InputDecoration(
@@ -350,63 +436,125 @@ LEFT JOIN (
                                           return null;
                                         },
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
                                       TextFormField(
                                         controller: descripcionController,
                                         decoration: const InputDecoration(
                                           labelText: "Descripción (opcional)",
+                                          border: OutlineInputBorder(),
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          if (_formKey.currentState!
-                                              .validate()) {
-                                            final tipo =
-                                                tipoController.text.trim();
-                                            final double costo =
-                                                double.tryParse(
-                                                  costoController.text
-                                                      .trim()
-                                                      .replaceAll(',', ''),
-                                                ) ??
-                                                0.0;
-                                            final descripcion =
-                                                descripcionController.text
-                                                    .trim();
-                                            final fecha = DateFormat(
-                                              'yyyy-MM-dd',
-                                            ).format(DateTime.now());
-                                            MantenimientoDAO.insertar(
-                                              carroId: car.carroID,
-                                              fechaRegistro: fecha,
-                                              tipo: tipo,
-                                              costo: costo,
-                                              descripcion: descripcion,
-                                            );
-                                            tipoController.clear();
-                                            costoController.clear();
-                                            descripcionController.clear();
-                                            setState(() {
-                                              _formCarroID = -1;
-                                              final mes = DateFormat(
-                                                'yyyy-MM',
-                                              ).format(DateTime.now());
-                                              _futureCars = fetchCarData(mes);
-                                            });
-                                          }
-                                        },
-                                        child: const Text("Guardar Servicio"),
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed:
+                                              isSaving
+                                                  ? null
+                                                  : () async {
+                                                    if (_formKey.currentState!
+                                                        .validate()) {
+                                                      guardarServicio(
+                                                        car.carroID,
+                                                        mantenimientoID,
+                                                      );
+                                                    }
+                                                  },
+                                          child:
+                                              isSaving
+                                                  ? const CircularProgressIndicator()
+                                                  : const Text(
+                                                    "Guardar servicio",
+                                                  ),
+                                        ),
                                       ),
                                     ],
                                   ),
+                                )
+                              else ...[
+                                // LISTA DE SERVICIOS (visible solo cuando no está el formulario)
+                                ...car.services.map(
+                                  (s) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6.0,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "Servicio: ${s.tipoServicio}",
+                                                style: const TextStyle(
+                                                  fontFamily: 'Quicksand',
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              if (s.descripcion.isNotEmpty)
+                                                Text(
+                                                  "Descripción: ${s.descripcion}",
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Quicksand',
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              "\$${_formatter.format(s.costo)}",
+                                              style: const TextStyle(
+                                                fontFamily: 'Quicksand',
+                                              ),
+                                            ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    tipoController.text =
+                                                        s.tipoServicio;
+                                                    costoController.text = s
+                                                        .costo
+                                                        .toStringAsFixed(2);
+                                                    descripcionController.text =
+                                                        s.descripcion;
+                                                    mantenimientoID =
+                                                        s.mantenimientoID;
+                                                    setState(() {
+                                                      _formCarroID =
+                                                          car.carroID;
+                                                    });
+                                                  },
+                                                  child: Text("Editar"),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    eliminarServicio(
+                                                      s.mantenimientoID,
+                                                    );
+                                                  },
+                                                  child: Text("Eliminar"),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ] else ...[
                                 const Divider(),
                                 // InfoRow(
                                 //   label: "Total servicios:",
-                                //   value:
-                                //       "\$${_formatter.format(car.totalServicios)}",
+                                //   value: "\$${_formatter.format(car.totalServicios)}",
                                 // ),
                                 InfoRow(
                                   label: "Ganancia neta:",

@@ -15,13 +15,13 @@ void importMantenimientosTabla() {
 }
 
 class MantenimientoDAO {
-  static void insertar({
+  static void insertarMantenimiento({
     required int carroId,
     required String fechaRegistro,
     required String tipo,
     required double costo,
-    required String descripcion,}
-  ) async{
+    required String descripcion,
+  }) async {
     DatabaseHelper().db.execute(
       '''
       INSERT INTO Mantenimiento (CarroID, FechaRegistro, TipoServicio, Costo, Descripcion)
@@ -31,11 +31,26 @@ class MantenimientoDAO {
     );
   }
 
-  static void eliminar(int id) {
-    DatabaseHelper().db.execute('DELETE FROM mantenimientos WHERE id = ?', [
-      id,
-    ]);
+  static void eliminarMantenimiento(int mantenimientoID) async {
+    DatabaseHelper().db.execute(
+      'DELETE FROM Mantenimiento WHERE MantenimientoID = ?',
+      [mantenimientoID],
+    );
+  }
+
+  static void actualizarMantenimiento({
+    required int mantenimientoID,
+    required String tipo,
+    required double costo,
+    required String descripcion,
+  }) async {
+    DatabaseHelper().db.execute(
+      '''
+      UPDATE Mantenimiento
+      SET TipoServicio = ?, Costo = ?, Descripcion = ?
+      WHERE MantenimientoID = ?
+    ''',
+      [tipo, costo, descripcion, mantenimientoID],
+    );
   }
 }
-
-

@@ -15,6 +15,7 @@ void importRentasTabla() {
       TipoPago TEXT,
       Observaciones TEXT,
       Comision REAL NOT NULL,
+      Estatus INTEGER,
       FOREIGN KEY (ClienteID) REFERENCES Cliente(ClienteID),
       FOREIGN KEY (CarroID) REFERENCES Carro(CarroID)
     );
@@ -107,6 +108,14 @@ class RentaDAO {
     ]);
   }
 
+  static void carroEntregado({required int rentaID}) {
+    // DatabaseHelper().dispose();
+    DatabaseHelper().db.execute(
+      'UPDATE Renta SET Estatus = 1 WHERE RentaID = ?',
+      [rentaID],
+    );
+  }
+
   static Future<List<Map<String, dynamic>>> obtenerHistorialCarros({
     required String fecha,
   }) async {
@@ -123,11 +132,12 @@ class RentaDAO {
             r.PrecioTotal,
             r.PrecioPagado,
             r.TipoPago,
-            r.Observaciones 
+            r.Observaciones,
+            r.Estatus
         FROM Carro c
         LEFT JOIN Renta r ON c.CarroID = r.CarroID
         LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
-        WHERE DATE(?) BETWEEN DATE(r.FechaInicio) AND DATE(r.FechaFin)
+        WHERE r.Estatus == 0 AND (DATE(r.FechaInicio) = ? OR DATE(r.FechaFin) = ?)
         UNION ALL
         SELECT
             NULL AS RentaID,
@@ -139,7 +149,8 @@ class RentaDAO {
             NULL AS PrecioTotal,
             NULL AS PrecioPagado,
             NULL AS TipoPago,
-            NULL AS Observaciones
+            NULL AS Observaciones,
+            NULL AS Estatus
         FROM Carro c
         WHERE c.CarroID NOT IN (
             SELECT c2.CarroID
@@ -149,7 +160,7 @@ class RentaDAO {
         )
         ORDER BY NombreCarro;
         ''',
-        [fecha, fecha],
+        [fecha, fecha, fecha],
       );
 
       return result

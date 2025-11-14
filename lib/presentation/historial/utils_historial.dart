@@ -39,7 +39,7 @@ Future<void> exportToExcelWithSummaryAtEnd(
   int row = 0;
 
   for (var car in cars) {
-    final totalServicios = car.services.fold(0.0, (sum, s) => sum + s.cost);
+    final totalServicios = car.services.fold(0.0, (sum, s) => sum + s.costo);
     final totComiServ = car.totalComision + totalServicios;
     final gananciaNeta = car.totalRenta - totComiServ;
 
@@ -81,9 +81,9 @@ Future<void> exportToExcelWithSummaryAtEnd(
       final serviceCostCell = sheet.cell(
         excel2.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
       );
-      serviceNameCell.value = excel2.TextCellValue(service.name);
+      serviceNameCell.value = excel2.TextCellValue(service.tipoServicio);
       serviceNameCell.cellStyle = borderedCellStyle;
-      serviceCostCell.value = excel2.DoubleCellValue(service.cost);
+      serviceCostCell.value = excel2.DoubleCellValue(service.costo);
       serviceCostCell.cellStyle = borderedCellStyle;
       row++;
     }

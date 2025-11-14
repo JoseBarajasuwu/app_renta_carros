@@ -17,8 +17,15 @@ class Car {
 }
 
 class Service {
-  final String name;
-  final double cost;
+  final int mantenimientoID;
+  final String tipoServicio;
+  final double costo;
+  final String descripcion;
 
-  Service(this.name, this.cost);
+  Service(
+    this.mantenimientoID,
+    this.tipoServicio,
+    this.costo,
+    this.descripcion,
+  );
 }
