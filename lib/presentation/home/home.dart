@@ -24,7 +24,7 @@ class HomeScreen extends StatelessWidget {
       'pantalla': const HomeScreen(),
     },
     {
-      'texto': 'PERFIL',
+      'texto': 'MISCELÁNEOS',
       'icono': Icons.account_circle_outlined,
       'color': Colors.blueGrey,
       'pantalla': const HomeScreen(),
@@ -36,9 +36,9 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          children: [
+          children: const [
             Icon(Icons.location_pin, color: Colors.white),
-            const Text(
+            Text(
               ' Sucursal Sonora',
               style: TextStyle(fontFamily: 'Quicksand', color: Colors.white),
             ),
@@ -46,6 +46,23 @@ class HomeScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Colors.blueGrey,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => const PerfilScreen()),
+                // );
+              },
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundImage: AssetImage("assets/imagenes/xd.jpg"),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),

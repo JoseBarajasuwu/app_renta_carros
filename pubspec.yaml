@@ -24,7 +24,7 @@ dependencies:
   intl: 0.20.2
   sqlite3: 2.7.6
   open_file: 3.5.10
-
+  path: 1.9.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

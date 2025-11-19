@@ -94,6 +94,16 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          // Navegar a pantalla de agregar cliente
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(builder: (_) => const AgregarClienteScreen()),
+          // );
+        },
+      ),
     );
   }
 }

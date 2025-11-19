@@ -97,7 +97,6 @@ class _AgendarPageState extends State<AgendarPage> {
     final lista = ClienteDAO.obtenerClienteAgenda();
     setState(() {
       lUsuarios = lista;
-      print(lUsuarios);
     });
   }
 
@@ -125,7 +124,6 @@ class _AgendarPageState extends State<AgendarPage> {
     final lista = CarroDAO.obtenerPrecioCarro(carroID: widget.carroID);
     lPrecio = lista;
     costoCtrl.text = lPrecio[0]["Costo"].toString();
-    print(lPrecio);
   }
 
   Future<void> cargaDiasOcupados() async {

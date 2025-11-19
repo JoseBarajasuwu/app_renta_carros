@@ -193,7 +193,6 @@ class RentaDAO {
     ''',
       [fecha, fecha],
     );
-    print(result);
     // Construir lista de mapas
     return result.map((row) {
       return {
@@ -236,7 +235,6 @@ class RentaDAO {
     ''',
       [carroID],
     );
-    print(result);
     // Construir lista de mapas
     return result.map((row) {
       return {'Fecha': row['Fecha']};
@@ -269,7 +267,6 @@ class RentaDAO {
     ''',
       [rentaID],
     );
-    print(result);
     // Construir lista de mapas
     return result.map((row) {
       return {'Fecha': row['Fecha']};

@@ -358,7 +358,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.5),
+                      color: Colors.orange.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.deepOrange, width: 2),
                     ),
@@ -403,7 +403,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.4),
+                      color: Colors.orange.withValues(alpha: 0.4),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -420,7 +420,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.3),
+                      color: Colors.red.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -439,7 +439,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -473,7 +473,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.5),
+                    color: Colors.green.withValues(alpha: 0.5),
                     border: Border.all(color: borderColor, width: 3),
                     shape: BoxShape.circle,
                   ),
@@ -508,7 +508,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.5),
+                    color: Colors.blue.withValues(alpha: 0.5),
                     border: Border.all(color: borderColor, width: 3),
                     shape: BoxShape.circle,
                   ),
@@ -530,17 +530,17 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                         .where((d) => isSameDay(d.dia, day))
                         .toList();
 
-                Color bgColor = Colors.lightGreen.withOpacity(0.4);
+                Color bgColor = Colors.lightGreen.withValues(alpha: 0.4);
                 Color textColor = Colors.black;
 
                 if (disponiblesEnElDia.length > 1) {
-                  bgColor = Colors.orange.withOpacity(0.5);
+                  bgColor = Colors.orange.withValues(alpha: 0.5);
                   textColor = Colors.deepOrange;
                 } else if (disponiblesEnElDia.isNotEmpty) {
                   bgColor =
                       disponiblesEnElDia.first.tipo == 'Inicio'
-                          ? Colors.green.withOpacity(0.5)
-                          : Colors.blue.withOpacity(0.5);
+                          ? Colors.green.withValues(alpha: 0.5)
+                          : Colors.blue.withValues(alpha: 0.5);
                   textColor = Colors.white;
                 }
 
