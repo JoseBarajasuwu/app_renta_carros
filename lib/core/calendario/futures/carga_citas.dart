@@ -66,6 +66,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
             fechaFin: fin,
             observacion: row['Observaciones'] ?? '',
             horaFinOcupacion: TimeOfDay(hour: fin.hour, minute: fin.minute),
+            tieneRentaDespues: row['TieneRentaDespues'] ?? 0,
           ),
         );
       } else {
@@ -98,6 +99,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
         fechaFin: cita.fechaFin,
         observacion: cita.observacion,
         horaFinOcupacion: cita.horaFinOcupacion,
+        tieneRentaDespues: cita.tieneRentaDespues,
       ),
     );
     carrosConRenta.add(cita.carroID);
@@ -125,6 +127,7 @@ Future<List<EstadoCarro>> obtenerEstadoCarros2Isolate(DateTime dia) async {
           fechaFin: dia,
           observacion: '',
           horaFinOcupacion: null,
+          tieneRentaDespues: 0,
         ),
       );
     }

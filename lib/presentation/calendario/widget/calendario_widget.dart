@@ -8,8 +8,10 @@ class CalendarWithBlockedDays extends StatefulWidget {
   final List<DateTime> diasOcupados;
   final List<DiaDisponible> diasDisponibles;
   final String rentaActualId;
+  final int? diasAntesCompletos;
   const CalendarWithBlockedDays({
     super.key,
+    this.diasAntesCompletos,
     required this.costoPorDia,
     required this.diasOcupados,
     required this.diasDisponibles,
@@ -137,9 +139,9 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
     final startTime = await _pickTime(context, 'Selecciona hora de inicio');
     if (startTime == null) return;
 
-    final endTime = await _pickTime(context, 'Selecciona hora de fin');
-    if (endTime == null) return;
-
+    // final endTime = await _pickTime(context, 'Selecciona hora de fin');
+    // if (endTime == null) return;
+    double costoPorDia = 0;
     final fullStart = DateTime(
       _rangeStart!.year,
       _rangeStart!.month,
@@ -152,19 +154,19 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
       _rangeEnd!.year,
       _rangeEnd!.month,
       _rangeEnd!.day,
-      endTime.hour,
-      endTime.minute,
+      startTime.hour,
+      startTime.minute,
     );
 
-    if (fullEnd.isBefore(fullStart)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Color(0xFF204c6c),
-          content: Text('La hora final no puede ser antes de la inicial.'),
-        ),
-      );
-      return;
-    }
+    // if (fullEnd.isBefore(fullStart)) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       backgroundColor: Color(0xFF204c6c),
+    //       content: Text('La hora final no puede ser antes de la inicial.'),
+    //     ),
+    //   );
+    //   return;
+    // }
 
     // Validar solapamiento con otras rentas (usando horas)
     final rangosOtrasRentas = obtenerRangosDeOtrasRentas();
@@ -212,10 +214,14 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
       });
       return;
     }
-
+    if (widget.diasAntesCompletos == null) {
+      costoPorDia = widget.costoPorDia;
+    } else {
+      costoPorDia = widget.costoPorDia / widget.diasAntesCompletos!;
+    }
     final duration = fullEnd.difference(fullStart).inHours;
     final diasCompletos = (duration / 24).ceil();
-    final total = diasCompletos * widget.costoPorDia;
+    final total = diasCompletos * costoPorDia;
 
     setState(() {
       fullStartDateTime = fullStart;
@@ -362,7 +368,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.5),
+                      color: Colors.orange.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.deepOrange, width: 2),
                     ),
@@ -407,7 +413,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.4),
+                      color: Colors.orange.withValues(alpha: 0.4),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -424,7 +430,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                   return Container(
                     margin: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.3),
+                      color: Colors.red.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -443,7 +449,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
@@ -477,7 +483,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.5),
+                    color: Colors.green.withValues(alpha: 0.5),
                     border: Border.all(color: borderColor, width: 3),
                     shape: BoxShape.circle,
                   ),
@@ -512,7 +518,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                 return Container(
                   margin: const EdgeInsets.all(6.0),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.5),
+                    color: Colors.blue.withValues(alpha: 0.5),
                     border: Border.all(color: borderColor, width: 3),
                     shape: BoxShape.circle,
                   ),
@@ -534,17 +540,17 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
                         .where((d) => isSameDay(d.dia, day))
                         .toList();
 
-                Color bgColor = Colors.lightGreen.withOpacity(0.4);
+                Color bgColor = Colors.lightGreen.withValues(alpha: 0.4);
                 Color textColor = Colors.black;
 
                 if (disponiblesEnElDia.length > 1) {
-                  bgColor = Colors.orange.withOpacity(0.5);
+                  bgColor = Colors.orange.withValues(alpha: 0.5);
                   textColor = Colors.deepOrange;
                 } else if (disponiblesEnElDia.isNotEmpty) {
                   bgColor =
                       disponiblesEnElDia.first.tipo == 'Inicio'
-                          ? Colors.green.withOpacity(0.5)
-                          : Colors.blue.withOpacity(0.5);
+                          ? Colors.green.withValues(alpha: 0.5)
+                          : Colors.blue.withValues(alpha: 0.5);
                   textColor = Colors.white;
                 }
 

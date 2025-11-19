@@ -8,6 +8,15 @@ final ThemeData appTheme = ThemeData(
   //   backgroundColor: Colors.orange,
   //   foregroundColor: Colors.white,
   // ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: Color(0xFF204c6c),
+    contentTextStyle: const TextStyle(
+      color: Colors.white,
+      fontFamily: 'Quicksand',
+      fontSize: 16,
+    ),
+    actionTextColor: Colors.white,
+  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: Color(0xFF204c6c),

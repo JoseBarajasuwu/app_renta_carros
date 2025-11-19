@@ -52,6 +52,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   bool mostrarSoloEditarCosto = false;
   double? costoTotal;
   int? diasCompletos;
+  int? diasAntesCompletos;
   String? fechaHoraInicio;
   String? fechaHoraFin;
   int? carroIDDescompuesto;
@@ -113,6 +114,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
       carroID: carroID,
     );
     var xd = RentaDAO.obtenerFechasCarro(rentaID: widget.rentaID);
+    sacarDias(xd);
     var tempDiasNoDisponibles = convertirFechasBloqueadas(lFecha);
 
     var tempxd = convertirFechasBloqueadas(xd);
@@ -120,6 +122,19 @@ class _AgendarWidgetState extends State<AgendarWidget> {
         tempDiasNoDisponibles
             .where((fecha) => !tempxd.contains(fecha))
             .toList();
+  }
+
+  void sacarDias(xd) {
+    final fechas = xd.map((e) => DateTime.parse(e["Fecha"])).toList()..sort();
+    // 2. Obtener inicio y fin
+    final fullStart = fechas.first;
+    final fullEnd = fechas.last;
+
+    // 3. Calcular diferencia en horas
+    final durationHours = fullEnd.difference(fullStart).inHours;
+
+    // 4. Calcular días completos SIN sumar 1
+    diasAntesCompletos = (durationHours / 24).floor();
   }
 
   List<DateTime> convertirFechasBloqueadas(
@@ -174,8 +189,8 @@ class _AgendarWidgetState extends State<AgendarWidget> {
   void initState() {
     cargaDiasOcupados();
     cargaDias();
-    costoCtrl.text = widget.precioTotal.toString();
-    anticipoCtrl.text = widget.precioPagado.toString();
+    costoCtrl.text = widget.precioTotal.ceil().toString();
+    anticipoCtrl.text = widget.precioPagado.ceil().toString();
     observacionesCtrl.text = widget.observaciones;
     super.initState();
   }
@@ -269,6 +284,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                                     diasOcupados: diasOcupados,
                                     diasDisponibles: diasDisponibles,
                                     rentaActualId: widget.rentaID.toString(),
+                                    diasAntesCompletos: diasAntesCompletos,
                                   ),
                                 ),
                           );

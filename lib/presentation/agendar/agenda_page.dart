@@ -285,7 +285,10 @@ class _AgendarPageState extends State<AgendarPage> {
                                   child: CalendarWithBlockedDays(
                                     costoPorDia:
                                         double.tryParse(
-                                          costoCtrl.text.replaceAll(',', ''),
+                                          costoCtrl.text.replaceAll(
+                                            ',',
+                                            '',
+                                          ), //Este no
                                         ) ??
                                         0,
                                     diasOcupados: diasOcupados,

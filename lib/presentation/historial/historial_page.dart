@@ -50,8 +50,20 @@ class _HistorialPageState extends State<HistorialPage> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Eliminar servicio'),
-            content: const Text('¿Estás seguro de eliminar este servicio?'),
+            title: const Text(
+              'Eliminar servicio',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            content: const Text(
+              '¿Estás seguro de eliminar este servicio?',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
             actions: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

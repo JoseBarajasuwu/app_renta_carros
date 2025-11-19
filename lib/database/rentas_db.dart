@@ -108,12 +108,16 @@ class RentaDAO {
     ]);
   }
 
-  static void carroEntregado({required int rentaID}) {
-    // DatabaseHelper().dispose();
-    DatabaseHelper().db.execute(
-      'UPDATE Renta SET Estatus = 1 WHERE RentaID = ?',
-      [rentaID],
-    );
+  static Future<bool> carroEntregado({required int rentaID}) async {
+    try {
+      DatabaseHelper().db.execute(
+        'UPDATE Renta SET Estatus = 1 WHERE RentaID = ?',
+        [rentaID],
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   static Future<List<Map<String, dynamic>>> obtenerHistorialCarros({
@@ -133,7 +137,16 @@ class RentaDAO {
             r.PrecioPagado,
             r.TipoPago,
             r.Observaciones,
-            r.Estatus
+            r.Estatus,
+            EXISTS (
+                SELECT 1 FROM Renta r3
+                WHERE r3.CarroID = r.CarroID
+                  AND r3.RentaID <> r.RentaID
+                  AND (
+                      DATE(r3.FechaInicio) = DATE(r.FechaFin)
+                    OR DATE(r3.FechaInicio) = DATE(r.FechaFin, '+1 day')
+                  )
+            ) AS TieneRentaDespues
         FROM Carro c
         LEFT JOIN Renta r ON c.CarroID = r.CarroID
         LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
@@ -150,7 +163,8 @@ class RentaDAO {
             NULL AS PrecioPagado,
             NULL AS TipoPago,
             NULL AS Observaciones,
-            NULL AS Estatus
+            NULL AS Estatus,
+            NULL AS TieneRentaDespues
         FROM Carro c
         WHERE c.CarroID NOT IN (
             SELECT c2.CarroID
@@ -176,6 +190,7 @@ class RentaDAO {
               'PrecioPagado': row['PrecioPagado'],
               'TipoPago': row['TipoPago'],
               'Observaciones': row['Observaciones'],
+              'TieneRentaDespues': row['TieneRentaDespues'],
             },
           )
           .toList();
@@ -327,6 +342,75 @@ class RentaDAO {
         }).toList();
 
     return diasDisponibles;
+  }
+
+  static Future<bool> agendarDiaExtra({required int rentaID}) async {
+    final db = DatabaseHelper().db;
+    try {
+      final verificacionAgendar = db.select(
+        '''
+      SELECT
+          EXISTS (
+              SELECT 1 
+              FROM Renta r3
+              WHERE r3.CarroID = r.CarroID
+                AND r3.RentaID <> r.RentaID
+                AND (
+                    DATE(r3.FechaInicio) = DATE(r.FechaFin)
+                  OR DATE(r3.FechaInicio) = DATE(r.FechaFin, '+1 day')
+                )
+          ) AS TieneRentaDespues
+      FROM Renta r
+      WHERE r.RentaID = ?;
+    ''',
+        [rentaID],
+      );
+
+      if (verificacionAgendar.isEmpty) return false;
+
+      final tieneRenta = verificacionAgendar.first['TieneRentaDespues'] == 1;
+      if (tieneRenta) return false;
+
+      final datosAgendar = db.select(
+        '''
+    SELECT
+        -CAST(
+            -(
+                (
+                    r.PrecioTotal /
+                    CAST((JULIANDAY(r.FechaFin) - JULIANDAY(r.FechaInicio)) AS INTEGER)
+                )
+                *
+                (CAST((JULIANDAY(r.FechaFin) - JULIANDAY(r.FechaInicio)) AS INTEGER) + 1)
+            ) AS INTEGER
+        ) AS PrecioTotalNuevo,
+        strftime(
+            '%Y-%m-%d %H:%M',
+            DATETIME(
+                r.FechaInicio,
+                '+' || (CAST((JULIANDAY(r.FechaFin) - JULIANDAY(r.FechaInicio)) AS INTEGER) + 1) || ' days'
+            )
+        ) AS NuevaFechaFin
+    FROM Renta r
+    WHERE r.RentaID = ?
+    ''',
+        [rentaID],
+      );
+
+      if (datosAgendar.isEmpty) return false;
+
+      final nuevaFechaFin = datosAgendar.first['NuevaFechaFin'];
+      final precioTotalNuevo = datosAgendar.first['PrecioTotalNuevo'];
+
+      db.execute(
+        'UPDATE Renta SET FechaFin = ?, PrecioTotal = ? WHERE RentaID = ?',
+        [nuevaFechaFin, precioTotalNuevo, rentaID],
+      );
+
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   // Future<List<Map<String, dynamic>>> obtenerHistorialRenta({

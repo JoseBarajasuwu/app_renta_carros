@@ -23,9 +23,44 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
     resetear();
   }
 
+  agendarDiaExtra(rentaID) async {
+    final ok = await RentaDAO.agendarDiaExtra(rentaID: rentaID);
+    confirmacionAgendaExtra(agendaExtra: true, ok: ok);
+  }
+
   entregarCarro(int rentaID) async {
-    RentaDAO.carroEntregado(rentaID: rentaID);
-    resetear();
+    final ok = await RentaDAO.carroEntregado(rentaID: rentaID);
+    confirmacionAgendaExtra(agendaExtra: false, ok: ok);
+  }
+
+  confirmacionAgendaExtra({required bool agendaExtra, required bool ok}) async {
+    if (ok == true) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.lightGreen,
+            content: Text(
+              agendaExtra == true
+                  ? 'Día extra agendado correctamente'
+                  : 'Carro entregado correctamente',
+            ),
+          ),
+        );
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text(
+              agendaExtra == true
+                  ? 'Error al agendar día extra'
+                  : 'Error al entregar carro',
+            ),
+          ),
+        );
+      }
+    }
   }
 
   resetear() {
@@ -229,13 +264,16 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                         if (estado.ocupado)
                                           Text(
                                             (estado.ocupado
-                                                    ? "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} hasta ${estado.fechaFin.day}/${estado.fechaFin.month}"
+                                                    ? "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} "
+                                                        "a las ${estado.horaFinOcupacion!.format(context)} "
+                                                        "hasta ${estado.fechaFin.day}/${estado.fechaFin.month}"
                                                     : "Disponible") +
                                                 (estado.ocupado &&
                                                         estado.horaFinOcupacion !=
                                                             null
                                                     ? " (Se desocupa a las ${estado.horaFinOcupacion!.format(context)})"
                                                     : ""),
+                                            maxLines: 3,
                                             style: const TextStyle(
                                               fontFamily: 'Quicksand',
                                             ),
@@ -349,22 +387,31 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.end,
                                                 children: [
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      // Acción del botón
-                                                    },
-                                                    child: const Text(
-                                                      "Ver Detalle",
-                                                      style: TextStyle(
-                                                        fontFamily: 'Quicksand',
-                                                      ),
-                                                    ),
-                                                  ),
+                                                  estado.tieneRentaDespues == 0
+                                                      ? ElevatedButton(
+                                                        onPressed: () async {
+                                                          eliminarServicio(
+                                                            agendarEntregar:
+                                                                true,
+                                                            rentaID:
+                                                                estado.rentaID,
+                                                          );
+                                                        },
+                                                        child: const Text(
+                                                          "Día extra",
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Quicksand',
+                                                          ),
+                                                        ),
+                                                      )
+                                                      : const SizedBox(),
                                                   SizedBox(width: 8),
                                                   ElevatedButton(
                                                     onPressed: () {
-                                                      entregarCarro(
-                                                        estado.rentaID,
+                                                      eliminarServicio(
+                                                        agendarEntregar: false,
+                                                        rentaID: estado.rentaID,
                                                       );
                                                     },
                                                     child: const Text(
@@ -515,13 +562,16 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                       children: [
                                         Text(
                                           (estado.ocupado
-                                                  ? "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} hasta ${estado.fechaFin.day}/${estado.fechaFin.month}"
+                                                  ? "Ocupado desde ${estado.fechaInicio.day}/${estado.fechaInicio.month} "
+                                                      "a las ${estado.horaFinOcupacion!.format(context)} "
+                                                      "hasta ${estado.fechaFin.day}/${estado.fechaFin.month}"
                                                   : "Disponible") +
                                               (estado.ocupado &&
                                                       estado.horaFinOcupacion !=
                                                           null
                                                   ? " (Se desocupa a las ${estado.horaFinOcupacion!.format(context)})"
                                                   : ""),
+                                          maxLines: 3,
                                           style: const TextStyle(
                                             fontFamily: 'Quicksand',
                                           ),
@@ -807,6 +857,57 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
           },
         );
       },
+    );
+  }
+
+  void eliminarServicio({
+    required bool agendarEntregar,
+    required int rentaID,
+  }) async {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              agendarEntregar == true ? 'Agendar día extra' : 'Entregar carro',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            content: Text(
+              agendarEntregar == true
+                  ? '¿Deseas agendar un día extra para esta renta?'
+                  : '¿Deseas entregar este carro?',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (agendarEntregar == true) {
+                        agendarDiaExtra(rentaID);
+                      } else {
+                        entregarCarro(rentaID);
+                      }
+                      Navigator.pop(context);
+                      resetear();
+                    },
+                    child: const Text('Aceptar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
     );
   }
 }
