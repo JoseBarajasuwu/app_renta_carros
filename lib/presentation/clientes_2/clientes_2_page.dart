@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:renta_carros/core/widgets_personalizados/app_bar_widget.dart';
+import 'package:renta_carros/presentation/agregar_clientes/agregar_cliente_page.dart';
 
 class ListaConBuscador extends StatefulWidget {
   const ListaConBuscador({super.key});
@@ -58,51 +60,78 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Clientes')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Buscar...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-            ),
+      appBar: buildSucursalAppBar('Sucursal Sonora'),
+      body: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Card(
+          elevation: 6,
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredItems.length,
-              itemBuilder: (context, index) {
-                final item = _filteredItems[index];
-                final bool activo = item['activo'];
-                final Color color = activo ? Colors.green : Colors.grey;
-
-                return ListTile(
-                  leading: CircleAvatar(backgroundColor: color, radius: 12),
-                  title: Text(item['nombre']),
-                  subtitle: Text('Cantidad: ${item['numero']}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onPressed: () => _abrirDetalle(context, item),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              children: [
+                Align(alignment: Alignment.topLeft, child: Text("Clientes")),
+                TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar...',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
                   ),
-                );
-              },
+                ),
+
+                // 👉 ListView con altura fija y padding para el FAB
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(
+                      bottom: 72,
+                    ), // EXACTO para el FAB
+                    itemCount: _filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _filteredItems[index];
+                      final bool activo = item['activo'];
+                      final Color color = activo ? Colors.green : Colors.grey;
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: color,
+                          radius: 12,
+                        ),
+                        title: Text(item['nombre']),
+                        subtitle: Text('Cantidad: ${item['numero']}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.menu, size: 16),
+                          onPressed: () => _abrirDetalle(context, item),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // Navegar a pantalla de agregar cliente
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(builder: (_) => const AgregarClienteScreen()),
-          // );
-        },
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(4),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(0),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AgregarClientePage()),
+            );
+          },
+          child: Text('Agregar Cliente'),
+        ),
       ),
     );
   }

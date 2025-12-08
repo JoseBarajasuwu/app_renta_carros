@@ -8,25 +8,25 @@ class HomeScreen extends StatelessWidget {
     {
       'texto': 'RENTA',
       'icono': Icons.calendar_month_outlined,
-      'color': Colors.blueGrey,
+      'color': Color(0xFF1E3A8A),
       'pantalla': const HomeScreen(),
     },
     {
       'texto': 'CLIENTE',
       'icono': Icons.person_outline_sharp,
-      'color': Colors.blueGrey,
+      'color': Color(0xFF1E3A8A),
       'pantalla': const ListaConBuscador(),
     },
     {
       'texto': 'VEHÍCULO',
       'icono': Icons.directions_car,
-      'color': Colors.blueGrey,
+      'color': Color(0xFF1E3A8A),
       'pantalla': const HomeScreen(),
     },
     {
       'texto': 'MISCELÁNEOS',
       'icono': Icons.account_circle_outlined,
-      'color': Colors.blueGrey,
+      'color': Color(0xFF1E3A8A),
       'pantalla': const HomeScreen(),
     },
   ];
@@ -45,7 +45,6 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         centerTitle: true,
-        backgroundColor: Colors.blueGrey,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
