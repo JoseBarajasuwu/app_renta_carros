@@ -170,7 +170,10 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                   child: ListTile(
                                     leading: Icon(
                                       Icons.directions_car_filled,
-                                      color: Colors.red,
+                                      color:
+                                          estado.estatus == 0
+                                              ? Colors.red
+                                              : Colors.green,
                                     ),
                                     title: Row(
                                       mainAxisAlignment:
@@ -407,20 +410,25 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                       )
                                                       : const SizedBox(),
                                                   SizedBox(width: 8),
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      eliminarServicio(
-                                                        agendarEntregar: false,
-                                                        rentaID: estado.rentaID,
-                                                      );
-                                                    },
-                                                    child: const Text(
-                                                      "Entregar",
-                                                      style: TextStyle(
-                                                        fontFamily: 'Quicksand',
-                                                      ),
-                                                    ),
-                                                  ),
+                                                  estado.estatus == 0
+                                                      ? ElevatedButton(
+                                                        onPressed: () {
+                                                          eliminarServicio(
+                                                            agendarEntregar:
+                                                                false,
+                                                            rentaID:
+                                                                estado.rentaID,
+                                                          );
+                                                        },
+                                                        child: const Text(
+                                                          "Entregar",
+                                                          style: TextStyle(
+                                                            fontFamily:
+                                                                'Quicksand',
+                                                          ),
+                                                        ),
+                                                      )
+                                                      : SizedBox(),
                                                 ],
                                               ),
                                             ],

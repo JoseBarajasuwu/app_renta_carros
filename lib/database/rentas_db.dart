@@ -150,7 +150,7 @@ class RentaDAO {
         FROM Carro c
         LEFT JOIN Renta r ON c.CarroID = r.CarroID
         LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
-        WHERE r.Estatus == 0 AND (DATE(r.FechaInicio) = ? OR DATE(r.FechaFin) = ?)
+        WHERE (DATE(r.FechaInicio) = ? OR DATE(r.FechaFin) = ?)
         UNION ALL
         SELECT
             NULL AS RentaID,
@@ -190,6 +190,7 @@ class RentaDAO {
               'PrecioPagado': row['PrecioPagado'],
               'TipoPago': row['TipoPago'],
               'Observaciones': row['Observaciones'],
+              'Estatus': row['Estatus'],
               'TieneRentaDespues': row['TieneRentaDespues'],
             },
           )
