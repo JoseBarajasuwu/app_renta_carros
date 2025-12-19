@@ -105,7 +105,12 @@ class _HistorialPageState extends State<HistorialCarroPage> {
         future: _futureCar,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.transparent,
+                color: Color(0xFF204c6c),
+              ),
+            );
           }
           if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));

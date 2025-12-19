@@ -135,7 +135,7 @@ class _ClientesPageState extends State<ClientesPage> {
               ? const Center(
                 child: CircularProgressIndicator(
                   backgroundColor: Colors.transparent,
-                  color: Colors.blueAccent,
+                  color: Color(0xFF204c6c),
                 ),
               )
               : Row(

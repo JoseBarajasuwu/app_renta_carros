@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:renta_carros/core/calendario/futures/carga_citas.dart';
 import 'package:renta_carros/core/calendario/metods/detalle_citas_metods.dart';
 import 'package:renta_carros/core/calendario/model/detalle_citas.dart';
 import 'package:renta_carros/database/rentas_db.dart';
 import 'package:renta_carros/presentation/agendar/agenda_page.dart';
 import 'package:renta_carros/presentation/calendario/agenda_widget/agenda_widget.dart';
+import 'package:renta_carros/presentation/clientes/widgets/input_observacion.dart';
 
 class DetalleCitasPage extends StatefulWidget {
   final DateTime fecha;
@@ -105,7 +107,12 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
               future: compute(obtenerEstadoCarros2Isolate, widget.fecha),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.transparent,
+                      color: Color(0xFF204c6c),
+                    ),
+                  );
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -378,13 +385,80 @@ class _DetalleCitasPageState extends State<DetalleCitasPage> {
                                                   ),
                                                 ],
                                               ),
-                                              Text(
-                                                estado.observacion.isEmpty
-                                                    ? "No hubo observación"
-                                                    : estado.observacion,
-                                                style: const TextStyle(
-                                                  fontFamily: 'Quicksand',
-                                                ),
+                                              Row(
+                                                children: [
+                                                  InkWell(
+                                                    onTap: () async {
+                                                      final formato =
+                                                          DateFormat(
+                                                            'yyyy-MM-dd HH:mm',
+                                                          );
+
+                                                      final String
+                                                      formateadaFechaFin =
+                                                          formato.format(
+                                                            estado.fechaFin,
+                                                          );
+                                                      final String
+                                                      formateadaFechaInicio =
+                                                          formato.format(
+                                                            estado.fechaInicio,
+                                                          );
+
+                                                      final guardado = await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder:
+                                                              (
+                                                                _,
+                                                              ) => InputConCarga(
+                                                                rentaID:
+                                                                    estado
+                                                                        .rentaID,
+                                                                observacion:
+                                                                    estado
+                                                                        .observacion,
+                                                                nombreCliente:
+                                                                    estado
+                                                                        .nombreCliente,
+                                                                nombreCarro:
+                                                                    estado
+                                                                        .nombreCarro,
+                                                                fechaInicio:
+                                                                    formateadaFechaInicio,
+                                                                fechaFin:
+                                                                    formateadaFechaFin,
+                                                                estatus:
+                                                                    estado
+                                                                        .estatus,
+                                                                precioTotal:
+                                                                    '\$${estado.precioTotal}',
+                                                                precioPagado:
+                                                                    '\$${estado.precioPagado}',
+                                                              ),
+                                                        ),
+                                                      );
+                                                      if (guardado == true) {
+                                                        resetear();
+                                                        // cargaHistorialCliente();
+                                                      }
+                                                    },
+                                                    child: Icon(
+                                                      Icons.edit_note,
+                                                      color: const Color(
+                                                        0xFF204c6c,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    estado.observacion.isEmpty
+                                                        ? "No hubo observación"
+                                                        : estado.observacion,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Quicksand',
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                               Row(
                                                 mainAxisAlignment:

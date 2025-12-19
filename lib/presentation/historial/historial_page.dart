@@ -227,7 +227,12 @@ LEFT JOIN (
         future: _futureCars,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.transparent,
+                color: Color(0xFF204c6c),
+              ),
+            );
           }
           if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
@@ -474,7 +479,11 @@ LEFT JOIN (
                                                   },
                                           child:
                                               isSaving
-                                                  ? const CircularProgressIndicator()
+                                                  ? const CircularProgressIndicator(
+                                                    backgroundColor:
+                                                        Colors.transparent,
+                                                    color: Color(0xFF204c6c),
+                                                  )
                                                   : const Text(
                                                     "Guardar servicio",
                                                   ),
