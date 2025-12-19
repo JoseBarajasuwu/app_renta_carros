@@ -4,8 +4,8 @@ import 'package:renta_carros/core/utils/formateo_celular.dart';
 import 'package:renta_carros/core/widgets_personalizados/app_bar_widget.dart';
 import 'package:renta_carros/core/widgets_personalizados/custom_text_form_widget.dart';
 
-class AgregarClientePage extends StatelessWidget {
-  AgregarClientePage({super.key});
+class AgregarCarroPage extends StatelessWidget {
+  AgregarCarroPage({super.key});
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class AgregarClientePage extends StatelessWidget {
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
-                      "Nuevo cliente",
+                      "Nuevo carro",
                       style: TextStyle(fontFamily: 'Quicksand-Bold'),
                     ),
                   ),
@@ -132,7 +132,7 @@ class AgregarClientePage extends StatelessWidget {
                         if (_formKey.currentState!.validate()) {}
                       },
                       child: const Text(
-                        'Guardar Cliente',
+                        'Guardar Carro',
                         style: TextStyle(fontFamily: 'Quicksand-Bold'),
                       ),
                     ),

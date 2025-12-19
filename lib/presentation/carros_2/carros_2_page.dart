@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:renta_carros/core/widgets_personalizados/app_bar_widget.dart';
-import 'package:renta_carros/presentation/agregar_clientes/agregar_cliente_page.dart';
+import 'package:renta_carros/presentation/agregar_carros/agregar_carro_page.dart';
+import 'package:renta_carros/presentation/carros_2/historial_carros_page.dart';
 
-class ListaConBuscador extends StatefulWidget {
-  const ListaConBuscador({super.key});
+class CarroPage2 extends StatefulWidget {
+  const CarroPage2({super.key});
 
   @override
-  State<ListaConBuscador> createState() => _ListaConBuscadorState();
+  State<CarroPage2> createState() => _CarroPage2State();
 }
 
-class _ListaConBuscadorState extends State<ListaConBuscador> {
+class _CarroPage2State extends State<CarroPage2> {
   // Datos de ejemplo: fruta, número y estado booleano
   final List<Map<String, dynamic>> _items = [
     {'nombre': 'Manzana', 'numero': 5, 'activo': true},
@@ -49,14 +50,6 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
     super.dispose();
   }
 
-  // Función para navegar a otra pantalla
-  void _abrirDetalle(BuildContext context, Map<String, dynamic> item) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => DetalleFrutaScreen(item: item)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,7 +66,13 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
             padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                Align(alignment: Alignment.topLeft, child: Text("Clientes")),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    "Carros",
+                    style: TextStyle(fontFamily: 'Quicksand-Bold'),
+                  ),
+                ),
                 TextField(
                   controller: _searchController,
                   decoration: const InputDecoration(
@@ -83,12 +82,10 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
                   ),
                 ),
 
-                // 👉 ListView con altura fija y padding para el FAB
+                //  ListView con altura fija y padding para el FAB
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(
-                      bottom: 72,
-                    ), // EXACTO para el FAB
+                    padding: const EdgeInsets.only(bottom: 72),
                     itemCount: _filteredItems.length,
                     itemBuilder: (context, index) {
                       final item = _filteredItems[index];
@@ -100,11 +97,23 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
                           backgroundColor: color,
                           radius: 12,
                         ),
-                        title: Text(item['nombre']),
+                        title: Text(
+                          item['nombre'],
+                          style: TextStyle(fontFamily: 'Quicksand-Bold'),
+                        ),
                         subtitle: Text('Cantidad: ${item['numero']}'),
                         trailing: IconButton(
                           icon: const Icon(Icons.menu, size: 16),
-                          onPressed: () => _abrirDetalle(context, item),
+                          onPressed:
+                              () => {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => HistorialCarroPage2(item: item),
+                                  ),
+                                ),
+                              },
                         ),
                       );
                     },
@@ -116,7 +125,7 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.only(bottom: 6, top: 4, left: 8, right: 8),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             shape: RoundedRectangleBorder(
@@ -127,40 +136,13 @@ class _ListaConBuscadorState extends State<ListaConBuscador> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => AgregarClientePage()),
+              MaterialPageRoute(builder: (_) => AgregarCarroPage()),
             );
           },
-          child: Text('Agregar Cliente'),
-        ),
-      ),
-    );
-  }
-}
-
-class DetalleFrutaScreen extends StatelessWidget {
-  final Map<String, dynamic> item;
-
-  const DetalleFrutaScreen({super.key, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(item['nombre'])),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              item['activo'] ? Icons.check_circle : Icons.cancel,
-              color: item['activo'] ? Colors.green : Colors.grey,
-              size: 80,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Cantidad: ${item['numero']}',
-              style: const TextStyle(fontSize: 22),
-            ),
-          ],
+          child: Text(
+            'Agregar Carro',
+            style: TextStyle(fontFamily: 'Quicksand-Bold'),
+          ),
         ),
       ),
     );

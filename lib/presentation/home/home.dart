@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:renta_carros/presentation/carros_2/carros_2_page.dart';
 import 'package:renta_carros/presentation/clientes_2/clientes_2_page.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -15,13 +16,13 @@ class HomeScreen extends StatelessWidget {
       'texto': 'CLIENTE',
       'icono': Icons.person_outline_sharp,
       'color': Color(0xFF1E3A8A),
-      'pantalla': const ListaConBuscador(),
+      'pantalla': const ClientePage2(),
     },
     {
       'texto': 'VEHÍCULO',
       'icono': Icons.directions_car,
       'color': Color(0xFF1E3A8A),
-      'pantalla': const HomeScreen(),
+      'pantalla': const CarroPage2(),
     },
     {
       'texto': 'MISCELÁNEOS',
@@ -95,7 +96,7 @@ class HomeScreen extends StatelessWidget {
                       boton['texto'],
                       style: const TextStyle(
                         color: Colors.white,
-                        fontFamily: 'Quicksand',
+                        fontFamily: 'Quicksand-Bold',
                         fontSize: 20,
                       ),
                     ),

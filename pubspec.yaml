@@ -53,6 +53,9 @@ flutter:
     - family: Quicksand
       fonts:
         - asset: assets/fonts/Quicksand.ttf
+    - family: Quicksand-Bold
+      fonts:
+        - asset: assets/fonts/Quicksand-Bold.ttf
     # - family: Corbel Bold
       # fonts:
       #   - asset: assets/fonts/Corbel Bold.ttf
