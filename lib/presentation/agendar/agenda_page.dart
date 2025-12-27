@@ -294,6 +294,7 @@ class _AgendarPageState extends State<AgendarPage> {
                                     diasOcupados: diasOcupados,
                                     diasDisponibles: diasDisponibles,
                                     rentaActualId: "0",
+                                    carroID: widget.carroID,
                                   ),
                                 ),
                           );

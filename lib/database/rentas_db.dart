@@ -198,27 +198,29 @@ class RentaDAO {
     });
   }
 
-  static List<Map<String, dynamic>> obtenerHistorial({required String fecha}) {
+  static List<Map<String, dynamic>> obtenerHistorial({
+    required String fecha,
+    required int carroID,
+  }) {
     final result = DatabaseHelper().db.select(
       '''
         SELECT 
           r.RentaID,
-          c.Nombre || " " || c.Apellido as NombreCompleto,
-          ca.NombreCarro,
-          ca.Anio,
-          ca.Placas,
+          cl.Nombre || ' ' || cl.Apellido AS NombreCompleto,
+          c.NombreCarro,
+          c.Anio,
+          c.Placas,
           r.FechaInicio,
           r.FechaFin
-        FROM 
-          Renta as r
-        LEFT JOIN 
-          Cliente as c ON r.ClienteID = c.ClienteID
-        LEFT JOIN 
-          Carro as ca ON ca.CarroID = r.CarroID
-        WHERE 
-          date(FechaInicio) = ? OR date(FechaFin) = ?;
+        FROM Carro c
+        LEFT JOIN Renta r 
+          ON c.CarroID = r.CarroID
+          AND (date(r.FechaInicio) = ? OR date(r.FechaFin) = ?)
+        LEFT JOIN Cliente cl ON cl.ClienteID = r.ClienteID
+        WHERE c.CarroID = ?
+        ORDER BY r.FechaInicio;
     ''',
-      [fecha, fecha],
+      [fecha, fecha, carroID],
     );
     print(result);
     // Construir lista de mapas

@@ -285,6 +285,7 @@ class _AgendarWidgetState extends State<AgendarWidget> {
                                     diasDisponibles: diasDisponibles,
                                     rentaActualId: widget.rentaID.toString(),
                                     diasAntesCompletos: diasAntesCompletos,
+                                    carroID: widget.carroID,
                                   ),
                                 ),
                           );

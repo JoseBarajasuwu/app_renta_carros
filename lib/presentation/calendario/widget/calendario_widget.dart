@@ -9,6 +9,7 @@ class CalendarWithBlockedDays extends StatefulWidget {
   final List<DiaDisponible> diasDisponibles;
   final String rentaActualId;
   final int? diasAntesCompletos;
+  final int carroID;
   const CalendarWithBlockedDays({
     super.key,
     this.diasAntesCompletos,
@@ -16,6 +17,7 @@ class CalendarWithBlockedDays extends StatefulWidget {
     required this.diasOcupados,
     required this.diasDisponibles,
     required this.rentaActualId,
+    required this.carroID,
   });
 
   @override
@@ -237,32 +239,32 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
     });
   }
 
-  Widget _buildInfoForDay(DateTime? day) {
+  Widget _buildInfoForDay(DateTime? day, int carroID) {
     if (day == null) return const SizedBox();
     final fecha = formatoFechaHora.format(day);
     List<Map<String, dynamic>> listaRentasInfo = RentaDAO.obtenerHistorial(
       fecha: fecha,
+      carroID: carroID,
     );
+    _day = null;
     if (listaRentasInfo.isEmpty) return const SizedBox();
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blueGrey.shade200),
+        border: Border.all(color: Colors.blueGrey),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
+          // const SizedBox(height: 8),
           ...listaRentasInfo.map((renta) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                '${renta['NombreCompleto']}, ${renta['NombreCarro']}'
-                ' ${renta['Anio']}'
-                ' ${renta['Placas']}'
+                '${renta['NombreCompleto']},'
                 ' Desde: ${formatoFecha.format(DateTime.parse(renta['FechaInicio']))} '
                 'Hasta: ${formatoFecha.format(DateTime.parse(renta['FechaFin']))}',
                 style: const TextStyle(fontSize: 14, fontFamily: 'Quicksand'),
@@ -273,7 +275,9 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
       ),
     );
   }
-
+  // '${renta['NombreCompleto']}, ${renta['NombreCarro']}'
+  // ' ${renta['Anio']}'
+  // ' ${renta['Placas']}'
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -586,7 +590,7 @@ class _CalendarWithBlockedDaysState extends State<CalendarWithBlockedDays> {
             'Selecciona un rango y luego las horas.',
             style: TextStyle(fontFamily: 'Quicksand'),
           ),
-          if (_day != null) _buildInfoForDay(_day),
+          if (_day != null) _buildInfoForDay(_day, widget.carroID),
         ],
       ),
     );
